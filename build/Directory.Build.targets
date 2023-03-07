@@ -1,0 +1,32 @@
+﻿<Project>
+  
+  <!-- for reference only -->
+
+  <PropertyGroup>
+    <TickSpecCodeGenSourceDirectory>$(MSBuildThisFileDirectory)TickSpec.Build\TickSpec.Build</TickSpecCodeGenSourceDirectory>
+    <TickSpecCodeGenBinDirectory>$(TickSpecCodeGenSourceDirectory)\bin\$(Configuration)</TickSpecCodeGenBinDirectory>
+  </PropertyGroup>
+
+  <ItemGroup Condition="$(MSBuildProjectFile.EndsWith('.Specs.fsproj'))">
+    <FeatureFiles Include="*.feature" />
+    <ProjectReference Include="$(TickSpecCodeGenSourceDirectory)\TickSpec.CodeGen.fsproj" />
+
+    <CodeGen Include="$(MSBuildThisFileDirectory)TickSpec.Build\TickSpec.CodeGen\AbstractFeature.fs" />
+    <CodeGen Include="$(MSBuildThisFileDirectory)TickSpec.Build\TickSpec.Build\Program.fs" />
+  </ItemGroup>
+
+  <Target Name="GenerateFeatures"
+          Condition="$(MSBuildProjectFile.EndsWith('.Specs.fsproj'))"
+          BeforeTargets="BeforeCompile"
+          Inputs="@(FeatureFiles);@(CodeGen)"
+          Outputs="$(MSBuildProjectDirectory)\FeatureFixtures.fs">
+    <Exec Command="$(TickSpecCodeGenBinDirectory)\TickSpec.Build.exe $(MSBuildProjectDirectory)\FeatureFixtures.fs"
+          Outputs="$(MSBuildProjectDirectory)\FeatureFixtures.fs">
+      <Output ItemName="FeatureFixtures" TaskParameter="Outputs" />
+    </Exec>
+    <ItemGroup>
+      <FileWrites Include="@(FeatureFixtures)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

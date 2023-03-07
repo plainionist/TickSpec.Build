@@ -1,0 +1,10 @@
+**/bin/**
+.vs/**
+**/obj/**
+/*.suo
+/TestResult.xml
+/build/.fake
+*.suo
+/.ionide
+/.vscode
+*.gc.*
