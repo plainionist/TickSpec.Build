@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>TickSpec.Build</id>
+    <title>TickSpec.Build</title>
+    <version>@build.number@</version>
+    <authors>Plainionist</authors>
+    <owners>Plainionist</owners>
+    <licenseUrl>http://opensource.org/licenses/BSD-3-Clause</licenseUrl>
+    <projectUrl>https://github.com/plainionist/TickSpec.Build</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Generates test classes to execute TickSpec (Gherkin/BDD) based specifications</description>
+    <releaseNotes>
+      @releaseNotes@
+    </releaseNotes>
+    <copyright>Copyright 2023</copyright>
+    @dependencies@
+  </metadata>
+  @files@
+</package>
