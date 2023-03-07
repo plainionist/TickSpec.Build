@@ -1,32 +1,39 @@
 ﻿<Project>
-  
-  <!-- for reference only -->
 
   <PropertyGroup>
-    <TickSpecCodeGenSourceDirectory>$(MSBuildThisFileDirectory)TickSpec.Build\TickSpec.Build</TickSpecCodeGenSourceDirectory>
-    <TickSpecCodeGenBinDirectory>$(TickSpecCodeGenSourceDirectory)\bin\$(Configuration)</TickSpecCodeGenBinDirectory>
+    <!-- https://stackoverflow.com/questions/2579605/msbuild-appears-to-only-use-old-output-files-for-custom-build-tools -->
+    <UseHostCompilerIfAvailable>false</UseHostCompilerIfAvailable>
+
+    <DefaultItemExcludes>$(DefaultItemExcludes);**/*.feature</DefaultItemExcludes>
+
+    <TickSpecBuildAssembly>$(MSBuildThisFileDirectory)..\tasks\net6.0\TickSpec.Build.exe</TickSpecBuildAssembly>
   </PropertyGroup>
 
-  <ItemGroup Condition="$(MSBuildProjectFile.EndsWith('.Specs.fsproj'))">
+  <ItemGroup>
     <FeatureFiles Include="*.feature" />
-    <ProjectReference Include="$(TickSpecCodeGenSourceDirectory)\TickSpec.CodeGen.fsproj" />
 
-    <CodeGen Include="$(MSBuildThisFileDirectory)TickSpec.Build\TickSpec.CodeGen\AbstractFeature.fs" />
-    <CodeGen Include="$(MSBuildThisFileDirectory)TickSpec.Build\TickSpec.Build\Program.fs" />
+    <EmbeddedResource Include="@(FeatureFiles)" />
+
+    <UpToDateCheckInput Include="@(FeatureFiles)" />
+    <UpToDateCheckBuild Include="FeatureFixtures.fs" Original="@(FeatureFiles)" />
+    <CustomAdditionalCompileInputs Include="FeatureFixtures.fs" />
   </ItemGroup>
 
-  <Target Name="GenerateFeatures"
-          Condition="$(MSBuildProjectFile.EndsWith('.Specs.fsproj'))"
+  <Target Name="GenerateFeatureFileCodeBehind"
           BeforeTargets="BeforeCompile"
-          Inputs="@(FeatureFiles);@(CodeGen)"
+          Inputs="@(FeatureFiles)"
           Outputs="$(MSBuildProjectDirectory)\FeatureFixtures.fs">
-    <Exec Command="$(TickSpecCodeGenBinDirectory)\TickSpec.Build.exe $(MSBuildProjectDirectory)\FeatureFixtures.fs"
-          Outputs="$(MSBuildProjectDirectory)\FeatureFixtures.fs">
+
+    <Exec Command="$(TickSpecBuildAssembly) $(MSBuildProjectDirectory)\FeatureFixtures.fs" Outputs="$(MSBuildProjectDirectory)\FeatureFixtures.fs">
       <Output ItemName="FeatureFixtures" TaskParameter="Outputs" />
     </Exec>
     <ItemGroup>
       <FileWrites Include="@(FeatureFixtures)" />
     </ItemGroup>
+  </Target>
+
+  <Target Name="CleanupFeatureFileCodeBehind" BeforeTargets="Clean">
+    <Delete Files="%(FeatureFiles.CodeBehindFile)" ContinueOnError="true" />
   </Target>
 
 </Project>
