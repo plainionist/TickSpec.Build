@@ -6,6 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Entities.fs" />
+    <Compile Include="GherkinParser.fs" />
+    <Compile Include="TestFixtureGenerator.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

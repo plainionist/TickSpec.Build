@@ -10,15 +10,14 @@ type AbstractFeature() =
     static member GetScenarios(assembly:Assembly, featureFilename) =
         let definitions = new StepDefinitions(assembly.GetTypes())
 
-        let createFeature (featureFile:string) =
+        let getScenarios (featureFile:string) =
             let feature = definitions.GenerateFeature(featureFile, assembly.GetManifestResourceStream(featureFile))
             feature.Scenarios
 
-        // TODO: automatically do this with LeanSpec approach
         assembly.GetManifestResourceNames()
         |> Seq.filter(fun x -> x.EndsWith(".feature", StringComparison.OrdinalIgnoreCase))
         |> Seq.filter(fun x -> x.EndsWith("." + featureFilename, StringComparison.OrdinalIgnoreCase))
-        |> Seq.collect createFeature
+        |> Seq.collect getScenarios
         |> List.ofSeq
 
     member __.RunScenario (scenarios:Scenario list, name:string) = 
