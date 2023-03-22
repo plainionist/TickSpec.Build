@@ -2,8 +2,9 @@
 
 open System
 open System.IO
+open TickSpec
 
-let ReadFeatureFile file =
+let Read file =
     let linesWithLineNo = 
         File.ReadAllLines(file) 
         // start counting lines with 1 as in any editor
@@ -30,7 +31,13 @@ let ReadFeatureFile file =
             |> List.ofSeq
     }
 
-let ReadAllFeatureFiles folder =
-    Directory.GetFiles(folder, "*.feature")
-    |> Seq.map ReadFeatureFile
-    |> List.ofSeq
+let ReadAST file =
+    let lines = File.ReadAllLines(file)
+    FeatureParser.parseFeature(lines)
+
+let FindAllFeatureFiles folder =
+    let options = EnumerationOptions()
+    options.RecurseSubdirectories <- true
+    
+    Directory.GetFiles(folder, "*.feature", options)
+    |> List.ofArray

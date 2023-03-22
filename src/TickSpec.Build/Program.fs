@@ -1,27 +1,43 @@
 ﻿module TickSpec.Build.Program
 
 open System
-open System.IO
+
+[<AutoOpen>]
+module private Impl = 
+    let (|EqualsI|_|) (a:string) b = 
+        match a.Equals(b, StringComparison.OrdinalIgnoreCase) with
+        | true -> Some a
+        | false -> None
+
+    let usage() =
+        printfn "usage: TickSpec.Build [command] <options>"
+        printfn ""
+        printfn "Gobal options:"
+        printfn "  -h        - prints this help"
+        printfn ""
+        printfn "Commands:"
+        printfn "  fixtures             - generates code behind for test fixtures"
+        printfn "    <file>             - F# file the fixtures shall be generated into"
+        printfn "                         (feature files are collected from this folder)"
+        printfn "  doc                  - generates HTML documentation of the feature files"
+        printfn "    <input>            - folder to search for *.feature files"
+        printfn "    <output>           - folder to generate the HTML files to"
 
 [<EntryPoint>]
 let main argv =
     try
-        if argv.Length <> 1 then
-            failwithf "Exactly one argument required: file the 'code behind' test fixtures should be generated into"
-
-        let output = argv.[0];
-
-        printfn $"Generating '{output}'"
-
-        let featuresFolder = Path.GetDirectoryName(output)
-
-        let features = featuresFolder |> GherkinParser.ReadAllFeatureFiles
-
-        if features.Length = 0 then
-            printfn "No feature files found in %s" featuresFolder
-        else
-            use writer = new StreamWriter(output)
-            TestFixtureGenerator.Generate writer features
+        match argv |> List.ofArray with
+        | [] -> usage()
+        | (EqualsI "-h" _)::_ -> usage()
+        | (EqualsI "fixtures" _)::t -> 
+            match t with
+            | [x] -> Targets.GenerateTestFixtures x
+            | x -> failwithf "Missing or unknown arguments: %A" x
+        | (EqualsI "doc" _)::t -> 
+            match t with
+            | [i;o] -> Targets.GenerateHtmlDocs i o
+            | x -> failwithf "Missing or unknown arguments: %A" x
+        | x -> failwithf "Unknown arguments: %A" x
 
         0
     with
