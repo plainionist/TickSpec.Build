@@ -29,7 +29,7 @@ module private Impl =
             | Simple x -> x.Parameters |> List.singleton
             | Outline(_,x) -> x |> List.map(fun y -> y.Parameters)
 
-    let generateStep (stepType:StepType, line:LineSource) =
+    let generateStep (_:StepType, line:LineSource) =
         let doc = new XElement("div")
 
         let text = line.Text.Trim()
@@ -42,28 +42,39 @@ module private Impl =
 
         doc.Add(new XElement("span", statement))
 
+        // TODO: support for bullets and table
+        // TODO: tests needed
+
         doc
 
-    let generateExamples (rows:(string*string) array list) =
-        let header = rows |> List.head |> Array.map fst |> Array.sort
+    let generateExamples (steps:StepSource array) (rows:(string*string) array list) =
+        let findParamPosition p = 
+            steps 
+            |> Seq.find(fun (_,line) -> line.Text.Contains($"<{p}>"))
+            |> fun (_,x) -> x.Number
+
+        let header = 
+            rows 
+            |> List.head 
+            |> Array.map(fun (x,_) -> x,x |> findParamPosition)
+            |> Array.sortBy snd
+
+        let sortColumns = Seq.map(fun (k,v) -> header |> Seq.find(fun (h,_) -> k = h) |> snd,k,v) >> Seq.sortBy(fun (i,k,v) -> i) >> Seq.map(fun (_,k,v) -> k,v)
 
         let doc = new XElement("table",
             new XElement("thead",
                 new XElement("tr", 
-                    header |> Seq.map(fun k -> new XElement("td", k))
+                    header |> Seq.map(fun (k,_) -> new XElement("td", k))
                 )
             ),
             new XElement("tbody",
                 rows 
                 |> Seq.map(fun r -> 
                     new XElement("tr",
-                        r 
-                        |> Seq.sortBy fst // ensure all rows have columns in same order
-                        |> Seq.map(fun (_,v) -> new XElement("td",v))))
+                        r |> sortColumns |> Seq.map(fun (_,v) -> new XElement("td",v))))
             ))
 
         doc
-
 
     let generateScenario (scenario:Scenario) =
         let doc = new XElement("div")
@@ -87,7 +98,7 @@ module private Impl =
         | [] -> ()
         | h::_ as rows -> 
             doc.Add(new XElement("span", "Examples:"))
-            doc.Add(generateExamples rows)
+            doc.Add(generateExamples (scenario |> Scenario.Steps) rows)
 
         doc
 
