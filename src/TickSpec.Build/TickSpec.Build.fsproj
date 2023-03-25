@@ -13,12 +13,17 @@
     <Compile Include="GherkinParser.fs" />
     <Compile Include="TestFixtureGenerator.fs" />
     <Compile Include="HtmlGenerator.fs" />
+    <Compile Include="TestApi.fs" />
     <Compile Include="Targets.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="TickSpec" Version="2.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="7.0.200" />
   </ItemGroup>
 
 </Project>

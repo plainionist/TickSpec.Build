@@ -35,6 +35,10 @@ let ReadAST file =
     let lines = File.ReadAllLines(file)
     FeatureParser.parseFeature(lines)
 
+let ParseAST (text:string) =
+    text.Split(Environment.NewLine)
+    |> FeatureParser.parseFeature
+
 let FindAllFeatureFiles folder =
     let options = EnumerationOptions()
     options.RecurseSubdirectories <- true
