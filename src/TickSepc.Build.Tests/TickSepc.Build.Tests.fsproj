@@ -10,7 +10,8 @@
 
   <ItemGroup>
     <Compile Include="Assertions.fs" />
-    <Compile Include="HtmlGeneratorTests.fs" />
+    <Compile Include="HtmlGenerationTests.fs" />
+    <Compile Include="TestFixtureGenerationTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

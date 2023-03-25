@@ -4,11 +4,11 @@ open System
 open System.IO
 open TickSpec
 
-let Read file =
+let Parse filename (feature:string) =
     let linesWithLineNo = 
-        File.ReadAllLines(file) 
+        feature.Split(Environment.NewLine)
         // start counting lines with 1 as in any editor
-        |> Seq.mapi(fun i l -> i + 1, l)
+        |> Seq.mapi(fun i l -> i + 1, l.Trim()) // TODO: this may break formatting for doc generation later on - rethink
         |> List.ofSeq
 
     let grep prefix =
@@ -18,7 +18,7 @@ let Read file =
 
     {
         Name = grep "Feature:" |> Seq.exactlyOne |> fun (_,_,x) -> x
-        Filename = Path.GetFileName(file)
+        Filename = filename
         Scenarios = 
             grep "Scenario:" 
             |> Seq.append (grep "Scenario Outline:") 
@@ -30,6 +30,9 @@ let Read file =
                 })
             |> List.ofSeq
     }
+
+let Read file =
+    file |> File.ReadAllText |> Parse (Path.GetFileName(file))
 
 let ReadAST file =
     let lines = File.ReadAllLines(file)

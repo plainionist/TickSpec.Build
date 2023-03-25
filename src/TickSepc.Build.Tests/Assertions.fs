@@ -16,3 +16,6 @@ type SubStringConstraintIgnoreWhitespaces(expected:string) =
 
 let haveSubstringIgnoringWhitespaces = SubStringConstraintIgnoreWhitespaces
 
+let dump x =
+    printfn "%A" x
+    x
