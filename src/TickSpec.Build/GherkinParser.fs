@@ -4,12 +4,31 @@ open System
 open System.IO
 open TickSpec
 
-let Parse filename (feature:string) =
-    let linesWithLineNo = 
-        feature.Split(Environment.NewLine)
+[<AutoOpen>]
+module private Impl = 
+    let parseLines (text:string)=
+        let lines = text.Split(Environment.NewLine)
+
+        // indent which exists for all non-empty lines
+        let globalIndent = 
+            lines
+            |> Seq.filter (String.IsNullOrWhiteSpace >> not)
+            |> Seq.map(fun x -> x |> Seq.takeWhile Char.IsWhiteSpace |> Seq.length)
+            |> Seq.min
+
+        let normalize (line:string) =
+            if line |> String.IsNullOrWhiteSpace then
+                String.Empty
+            else
+                line.Substring(globalIndent).TrimEnd()
+
+        lines
         // start counting lines with 1 as in any editor
-        |> Seq.mapi(fun i l -> i + 1, l.Trim()) // TODO: this may break formatting for doc generation later on - rethink
+        |> Seq.mapi(fun i l -> i + 1, l |> normalize)
         |> List.ofSeq
+
+let Parse filename (feature:string) =
+    let linesWithLineNo = feature |> parseLines
 
     let grep prefix =
         linesWithLineNo 
