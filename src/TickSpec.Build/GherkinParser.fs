@@ -27,27 +27,58 @@ module private Impl =
         |> Seq.mapi(fun i l -> i + 1, l |> normalize)
         |> List.ofSeq
 
+    let (|Title|_|) (keyword:string) (line:string) =
+        let prefix = keyword + ":"
+        if line.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) then
+            line.Substring(prefix.Length).Trim() |> Some
+         else
+            None
+
+    let trimEmptyLines =
+        Seq.skipWhile(fun (_,line) -> line |> String.IsNullOrWhiteSpace)
+        >> Seq.rev
+        >> Seq.skipWhile(fun (_,line) -> line |> String.IsNullOrWhiteSpace)
+        >> Seq.rev
+
 let Parse filename (feature:string) =
     let linesWithLineNo = feature |> parseLines
 
-    let grep prefix =
-        linesWithLineNo 
-        |> Seq.filter(fun (_,x) -> x.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-        |> Seq.map(fun (i,x) -> i, x.Trim(), x.Substring(prefix.Length).Trim())
+    let featureName =
+        linesWithLineNo
+        |> Seq.map snd
+        |> Seq.choose(function | Title "Feature:" x -> x |> Some | _ -> None)
+        |> Seq.exactlyOne
+
+    let scenarios = 
+        linesWithLineNo
+        |> Seq.mapFold(fun scenarioIdx (i, line) ->
+            match line with
+            | Title "Scenario:" x
+            | Title "Scenario Outline:" x -> (scenarioIdx + 1, (i, x)), scenarioIdx + 1
+            | x -> (scenarioIdx, (i, line)), scenarioIdx) 0
+        |> fst
+        |> Seq.groupBy fst
+        |> Seq.map snd
+        |> Seq.map(fun lines -> 
+            lines
+            |> Seq.map snd // remove scenario index
+            |> Seq.sortBy fst // sort by line numbers
+            |> trimEmptyLines
+            |> List.ofSeq)
+        |> Seq.map(fun lines ->
+            let titleLine = lines |> Seq.head
+            { 
+                Name = titleLine |> snd
+                Title = titleLine |> snd
+                StartsAtLine = (titleLine |> fst) + 1 // skip scenario title
+                Body = lines |> Seq.skip 1 |> Seq.map snd |> List.ofSeq
+            })
+        |> List.ofSeq
 
     {
-        Name = grep "Feature:" |> Seq.exactlyOne |> fun (_,_,x) -> x
+        Name = featureName
         Filename = filename
-        Scenarios = 
-            grep "Scenario:" 
-            |> Seq.append (grep "Scenario Outline:") 
-            |> Seq.map(fun (lineNo, name, title) -> 
-                { 
-                    Name = name
-                    Title = title
-                    StartsAtLine = lineNo + 1 // skip scenario title
-                })
-            |> List.ofSeq
+        Scenarios = scenarios
     }
 
 let Read file =
