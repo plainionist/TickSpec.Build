@@ -83,3 +83,36 @@ let ``With Background``() =
             </div>
           </div>
           <div class="gherkin-scenario">"""
+
+[<Test>]
+let ``Step with multi line string``() =
+    """
+    Feature: First feature
+
+    Scenario: One
+    GIVEN some environment
+     AND the following value
+        \"\"\"
+        line 1
+        line 2
+        \"\"\"
+    WHEN some event happens
+    THEN the system should be in this state
+    """
+    |> TestApi.GenerateHtmlDoc
+    |> should haveSubstringIgnoringWhitespaces  """
+      <div class="gherkin-scenario">
+        <h3 class="gherkin-scenario-title">Scenario: One</h3>
+        <div class="gherkin-scenario-body">
+          <div>
+            <div>GIVEN some environment</div>
+            <div> AND the following value</div>
+            <div>    \"\"\"</div>
+            <div>    line 1</div>
+            <div>    line 2</div>
+            <div>    \"\"\"</div>
+            <div>WHEN some event happens</div>
+            <div>THEN the system should be in this state</div>
+          </div>
+        </div>
+      </div>"""
