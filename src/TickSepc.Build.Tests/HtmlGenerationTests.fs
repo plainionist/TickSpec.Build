@@ -56,3 +56,30 @@ let ``Steps rendered as separate <div/>s``() =
           </div>
         </div>
       </div>"""
+        
+[<Test>]
+let ``With Background``() =
+    """
+    Feature: First feature
+
+    Background:
+        GIVEN some additional environment
+
+    Scenario: One
+    GIVEN some environment
+     AND with following setting
+    WHEN some event happens
+    THEN the system should be in this state
+    AND behave like this
+    """
+    |> TestApi.GenerateHtmlDoc
+    |> should haveSubstringIgnoringWhitespaces  """
+        <article>
+          <h2 class="gherkin-feature-title">First feature</h2>
+          <div class="gherkin-scenario">
+            <h3 class="gherkin-scenario-title">Background</h3>
+            <div>
+              <div>GIVEN some additional environment</div>
+            </div>
+          </div>
+          <div class="gherkin-scenario">"""
