@@ -1,5 +1,7 @@
 
 - add tests for code generator
+  - multiple features and scenarios
+  - scenario outlines
 - enhance simple parser to have scenario body
 - enhance simple parser to have "background" section
 - adapt html generator to use simple domain model

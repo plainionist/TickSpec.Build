@@ -11,12 +11,11 @@ let GenerateHtmlDoc (featureText:string) =
 
     writer.ToString()        
 
-let GenerateTestFixtures (featureText:string) = 
+let GenerateTestFixtures (featureText:string list) = 
     use writer = new StringWriter()
 
     featureText 
-    |> GherkinParser.Parse "Dummy.feature"
-    |> List.singleton
+    |> List.map (GherkinParser.Parse "Dummy.feature")
     |> TestFixtureGenerator.Generate writer
 
     writer.ToString()        

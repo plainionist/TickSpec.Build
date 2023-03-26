@@ -7,14 +7,16 @@ open FsUnit
 
 [<Test>]
 let ``Single scenario``() =
-    """
-    Feature: First feature
+    [
+        """
+        Feature: First feature
 
-    Scenario: One
-    GIVEN some environment
-    WHEN some event happens
-    THEN the system should be in this state
-    """
+        Scenario: One
+        GIVEN some environment
+        WHEN some event happens
+        THEN the system should be in this state
+        """
+    ]
     |> TestApi.GenerateTestFixtures
     |> dump
     |> should haveSubstringIgnoringWhitespaces  """
