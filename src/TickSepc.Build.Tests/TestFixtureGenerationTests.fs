@@ -36,7 +36,6 @@ let ``Single scenario``() =
                 this.RunScenario(scenarios, "Scenario: One")
             """
 
-
 [<Test>]
 let ``Multiple features with multipe scenario``() =
     [
@@ -69,7 +68,6 @@ let ``Multiple features with multipe scenario``() =
         """
     ]
     |> TestApi.GenerateTestFixtures
-    |> dump
     |> should haveSubstringIgnoringWhitespaces  """
         namespace Specification
 
@@ -110,3 +108,41 @@ let ``Multiple features with multipe scenario``() =
                 this.RunScenario(scenarios, "Scenario: Four")
             """
 
+[<Test>]
+let ``Scenario outline``() =
+    [
+        """
+        Feature: First feature
+
+        Scenario Outline: Computing the state
+            GIVEN a work item
+            AND with "Concept Needed" set to '<ConceptNeeded>'
+            WHEN parsing the work item
+            THEN the computed concept state is '<ConceptState>'
+
+            Examples:
+            | ConceptNeeded | ConceptState |
+            |               | Unset        |
+            | yes           | Needed       |
+            | no            | NotNeeded    |
+        """
+    ]
+    |> TestApi.GenerateTestFixtures
+    |> should haveSubstringIgnoringWhitespaces  """
+        namespace Specification
+
+        open System.Reflection
+        open NUnit.Framework
+        open TickSpec.CodeGen
+
+        [<TestFixture>]
+        type ``First feature``() = 
+            inherit AbstractFeature()
+
+            let scenarios = AbstractFeature.GetScenarios(Assembly.GetExecutingAssembly(), "Dummy.feature")
+
+            [<Test>]
+            member this.``Computing the state``() =
+        #line 5 "Dummy.feature"
+                this.RunScenario(scenarios, "Scenario Outline: Computing the state")
+            """
