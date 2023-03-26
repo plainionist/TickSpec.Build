@@ -34,45 +34,44 @@ module private Impl =
          else
             None
 
-    let trimEmptyLines =
-        Seq.skipWhile(fun (_,line) -> line |> String.IsNullOrWhiteSpace)
-        >> Seq.rev
-        >> Seq.skipWhile(fun (_,line) -> line |> String.IsNullOrWhiteSpace)
-        >> Seq.rev
-
 let Parse filename (feature:string) =
     let linesWithLineNo = feature |> parseLines
 
     let featureName =
         linesWithLineNo
         |> Seq.map snd
-        |> Seq.choose(function | Title "Feature:" x -> x |> Some | _ -> None)
+        |> Seq.choose(function | Title "Feature" x -> x |> Some | _ -> None)
         |> Seq.exactlyOne
 
     let scenarios = 
         linesWithLineNo
-        |> Seq.mapFold(fun scenarioIdx (i, line) ->
-            match line with
-            | Title "Scenario:" x
-            | Title "Scenario Outline:" x -> (scenarioIdx + 1, (i, x)), scenarioIdx + 1
-            | x -> (scenarioIdx, (i, line)), scenarioIdx) 0
-        |> fst
-        |> Seq.groupBy fst
-        |> Seq.map snd
-        |> Seq.map(fun lines -> 
-            lines
-            |> Seq.map snd // remove scenario index
-            |> Seq.sortBy fst // sort by line numbers
-            |> trimEmptyLines
-            |> List.ofSeq)
-        |> Seq.map(fun lines ->
-            let titleLine = lines |> Seq.head
-            { 
-                Name = titleLine |> snd
-                Title = titleLine |> snd
-                StartsAtLine = (titleLine |> fst) + 1 // skip scenario title
-                Body = lines |> Seq.skip 1 |> Seq.map snd |> List.ofSeq
-            })
+        |> Seq.mapFold(fun scenario (lineNo, line) ->
+            match scenario, line with
+            | _, Title "Scenario" x
+            | _, Title "Scenario Outline" x ->
+                let newScenario =
+                    { 
+                        Name = line
+                        Title = x
+                        StartsAtLine = lineNo + 1 // skip scenario title
+                        Body = []
+                    }
+                scenario, newScenario |> Some
+            | Some scenario, _ -> None, { scenario with Body = line::scenario.Body } |> Some
+            | None, _ -> None, None // ignore lines outside scenario
+            ) None
+        |> fun (scenarios, scenario) -> scenario |> List.singleton |> Seq.append scenarios
+        |> Seq.choose id
+        |> Seq.map(fun x -> 
+            // trim empty lines and reverse
+            let lines = 
+                x.Body
+                |> Seq.skipWhile String.IsNullOrWhiteSpace
+                |> Seq.rev
+                |> Seq.skipWhile String.IsNullOrWhiteSpace
+                |> List.ofSeq
+
+            { x with Body = lines })
         |> List.ofSeq
 
     {

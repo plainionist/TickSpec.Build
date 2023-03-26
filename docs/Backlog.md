@@ -1,5 +1,4 @@
 
-- enhance simple parser to have scenario body
 - enhance simple parser to have "background" section
 - adapt html generator to use simple domain model
   - preserve scenario body 
