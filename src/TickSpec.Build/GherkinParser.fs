@@ -6,25 +6,26 @@ open TickSpec
 
 [<AutoOpen>]
 module private Impl = 
+    let trimLine numSpaces (line:string) =
+        if line |> String.IsNullOrWhiteSpace then
+            String.Empty
+        else
+            line.Substring(numSpaces).TrimEnd()
+
+        // indent which exists for all non-empty lines
+    let detectGlobalIndent = 
+        Seq.filter (String.IsNullOrWhiteSpace >> not)
+        >> Seq.map(fun x -> x |> Seq.takeWhile Char.IsWhiteSpace |> Seq.length)
+        >> Seq.min
+
+    // Line numbers start at 1 as in any editor
     let parseLines (text:string)=
         let lines = text.Split(Environment.NewLine)
 
-        // indent which exists for all non-empty lines
-        let globalIndent = 
-            lines
-            |> Seq.filter (String.IsNullOrWhiteSpace >> not)
-            |> Seq.map(fun x -> x |> Seq.takeWhile Char.IsWhiteSpace |> Seq.length)
-            |> Seq.min
-
-        let normalize (line:string) =
-            if line |> String.IsNullOrWhiteSpace then
-                String.Empty
-            else
-                line.Substring(globalIndent).TrimEnd()
+        let globalIndent = lines |> detectGlobalIndent
 
         lines
-        // start counting lines with 1 as in any editor
-        |> Seq.mapi(fun i l -> i + 1, l |> normalize)
+        |> Seq.mapi(fun i l -> i + 1, l |> trimLine globalIndent)
         |> List.ofSeq
 
     let (|Title|_|) (keyword:string) (line:string) =
