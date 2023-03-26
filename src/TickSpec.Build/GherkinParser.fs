@@ -12,11 +12,12 @@ module private Impl =
         else
             line.Substring(numSpaces).TrimEnd()
 
-        // indent which exists for all non-empty lines
-    let detectGlobalIndent = 
-        Seq.filter (String.IsNullOrWhiteSpace >> not)
-        >> Seq.map(fun x -> x |> Seq.takeWhile Char.IsWhiteSpace |> Seq.length)
-        >> Seq.min
+    // indent which exists for all non-empty lines
+    let detectGlobalIndent lines =
+        lines
+        |> Seq.filter (String.IsNullOrWhiteSpace >> not)
+        |> Seq.map(fun x -> x |> Seq.takeWhile Char.IsWhiteSpace |> Seq.length)
+        |> Seq.min
 
     // Line numbers start at 1 as in any editor
     let parseLines (text:string)=
@@ -34,6 +35,12 @@ module private Impl =
             line.Substring(prefix.Length).Trim() |> Some
          else
             None
+
+    let trimEmptyLines =
+        Seq.skipWhile String.IsNullOrWhiteSpace
+        >> Seq.rev
+        >> Seq.skipWhile String.IsNullOrWhiteSpace
+        >> Seq.rev
 
 let Parse filename (feature:string) =
     let linesWithLineNo = feature |> parseLines
@@ -64,19 +71,26 @@ let Parse filename (feature:string) =
         |> fun (scenarios, scenario) -> scenario |> List.singleton |> Seq.append scenarios
         |> Seq.choose id
         |> Seq.map(fun x -> 
-            // trim empty lines and reverse
-            let lines = 
-                x.Body
-                |> Seq.skipWhile String.IsNullOrWhiteSpace
-                |> Seq.rev
-                |> Seq.skipWhile String.IsNullOrWhiteSpace
-                |> List.ofSeq
-
-            { x with Body = lines })
+            let globalIndent = x.Body |> detectGlobalIndent
+            { x with Body = x.Body |> Seq.map (trimLine globalIndent) |> trimEmptyLines |> Seq.rev |> List.ofSeq } )
         |> List.ofSeq
 
+    let background = 
+        linesWithLineNo
+        |> Seq.map snd
+        |> Seq.skipWhile ((function | Title "Background" _ -> true | _ -> false) >> not)
+        |> Seq.takeWhile ((function | Title "Scenario" _ -> true | Title "Scenario Outline" _ -> true | _ -> false) >> not)
+        |> trimEmptyLines
+        |> List.ofSeq 
+        |> function
+            | [] -> []
+            | h::t -> 
+                let globalIndent = t |> detectGlobalIndent
+                t |> List.map (trimLine globalIndent)
+    
     {
         Name = featureName
+        Background = background
         Filename = filename
         Scenarios = scenarios
     }

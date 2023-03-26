@@ -36,6 +36,42 @@ let ``Single scenario``() =
                 this.RunScenario(scenarios, "Scenario: One")
             """
 
+
+[<Test>]
+let ``With background``() =
+    [
+        """
+        Feature: First feature
+
+        Background:
+            GIVEN some additional environment
+
+        Scenario: One
+        GIVEN some environment
+        WHEN some event happens
+        THEN the system should be in this state
+        """
+    ]
+    |> TestApi.GenerateTestFixtures
+    |> should haveSubstringIgnoringWhitespaces  """
+        namespace Specification
+
+        open System.Reflection
+        open NUnit.Framework
+        open TickSpec.CodeGen
+
+        [<TestFixture>]
+        type ``First feature``() = 
+            inherit AbstractFeature()
+
+            let scenarios = AbstractFeature.GetScenarios(Assembly.GetExecutingAssembly(), "Dummy.feature")
+
+            [<Test>]
+            member this.``One``() =
+        #line 8 "Dummy.feature"
+                this.RunScenario(scenarios, "Scenario: One")
+            """
+
 [<Test>]
 let ``Multiple features with multipe scenario``() =
     [

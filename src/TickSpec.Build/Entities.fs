@@ -10,5 +10,6 @@ type Scenario = {
 type Feature = {
     Name : string
     Filename : string
+    Background : string list
     Scenarios : Scenario list
 }
