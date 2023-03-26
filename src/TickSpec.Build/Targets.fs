@@ -1,7 +1,6 @@
 ﻿module TickSpec.Build.Targets
 
 open System.IO
-open TickSpec
 
 let GenerateTestFixtures (output:string) = 
     printfn $"Generating test fixtures '{output}' ..."
@@ -22,14 +21,14 @@ let GenerateTestFixtures (output:string) =
 let GenerateHtmlDocs (input:string) (output:string) =
     printfn $"Generating documenation for '{input}' ..."
 
-    let generate (feature:FeatureSource) = 
+    let generate (feature:Feature) = 
         let file = Path.Combine(output, feature.Name + ".html")
         use writer = new StreamWriter(file)
         HtmlGenerator.GenerateArticle writer feature
 
     input
     |> GherkinParser.FindAllFeatureFiles
-    |> List.map GherkinParser.ReadAST
+    |> List.map GherkinParser.Read
     |> Seq.iter generate
 
     printfn $"Documentation generated to '{output}'"

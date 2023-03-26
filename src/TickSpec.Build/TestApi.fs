@@ -6,7 +6,7 @@ let GenerateHtmlDoc (featureText:string) =
     use writer = new StringWriter()
 
     featureText
-    |> GherkinParser.ParseAST
+    |> GherkinParser.Parse "Dummy.feature"
     |> HtmlGenerator.GenerateArticle writer
 
     writer.ToString()        

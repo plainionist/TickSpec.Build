@@ -2,7 +2,6 @@
 
 open System
 open System.IO
-open TickSpec
 
 [<AutoOpen>]
 module private Impl = 
@@ -97,14 +96,6 @@ let Parse filename (feature:string) =
 
 let Read file =
     file |> File.ReadAllText |> Parse (Path.GetFileName(file))
-
-let ReadAST file =
-    let lines = File.ReadAllLines(file)
-    FeatureParser.parseFeature(lines)
-
-let ParseAST (text:string) =
-    text.Split(Environment.NewLine)
-    |> FeatureParser.parseFeature
 
 let FindAllFeatureFiles folder =
     let options = EnumerationOptions()

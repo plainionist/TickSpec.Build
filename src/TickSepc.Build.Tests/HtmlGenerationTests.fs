@@ -37,37 +37,22 @@ let ``Steps rendered as separate <div/>s``() =
 
     Scenario: One
     GIVEN some environment
-    AND with following setting
+     AND with following setting
     WHEN some event happens
     THEN the system should be in this state
     AND behave like this
     """
     |> TestApi.GenerateHtmlDoc
-    |> dump
     |> should haveSubstringIgnoringWhitespaces  """
-        <div class="gherkin-scenario">
-          <h3 class="gherkin-scenario-title">Scenario: One</h3>
-          <div class="gherkin-scenario-body">
-            <div>
-            <span class="gherkin-step-type">GIVEN</span>
-            <span>some environment</span>
-            </div>
-            <div>
-            <span class="gherkin-step-type">AND</span>
-            <span>with following setting</span>
-            </div>
-            <div>
-            <span class="gherkin-step-type">WHEN</span>
-            <span>some event happens</span>
-            </div>
-            <div>
-            <span class="gherkin-step-type">THEN</span>
-            <span>the system should be in this state</span>
-            </div>
-            <div>
-            <span class="gherkin-step-type">AND</span>
-            <span>behave like this</span>
-            </div>
+      <div class="gherkin-scenario">
+        <h3 class="gherkin-scenario-title">Scenario: One</h3>
+        <div class="gherkin-scenario-body">
+          <div>
+            <div>GIVEN some environment</div>
+            <div> AND with following setting</div>
+            <div>WHEN some event happens</div>
+            <div>THEN the system should be in this state</div>
+            <div>AND behave like this</div>
           </div>
         </div>
-        """
+      </div>"""
