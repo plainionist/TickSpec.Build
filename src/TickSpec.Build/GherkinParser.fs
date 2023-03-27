@@ -35,6 +35,21 @@ module private Impl =
          else
             None
 
+    let (|Tags|_|) (line:string) =
+        if line.Trim().StartsWith("@") then
+            line.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            |> Seq.map(fun x -> x.Trim().TrimStart('@'))
+            |> List.ofSeq
+            |> Some
+        else
+            None
+
+    let (|Comment|_|) (line:string) =
+        if line.Trim().StartsWith("#") then
+            line.TrimStart().TrimStart('#').Trim() |> Some
+        else
+            None
+
     let trimEmptyLines =
         Seq.skipWhile String.IsNullOrWhiteSpace
         >> Seq.rev
@@ -43,13 +58,9 @@ module private Impl =
 
     let parseTags (lines:(int*string) list) lineNo =
         if lineNo > 0 then
-            let tagsLine = lines |> Seq.find(fun (x,_) -> x = lineNo - 1) |> snd |> fun x -> x.Trim()
-            if tagsLine.StartsWith("@") then
-                tagsLine.Split(' ',StringSplitOptions.RemoveEmptyEntries)
-                |> Seq.map(fun x -> x.TrimStart('@'))
-                |> List.ofSeq
-            else
-                []
+            match lines |> Seq.find(fun (x,_) -> x = lineNo - 1) |> snd with
+            | Tags x -> x
+            | _ -> []
         else
             []
 
@@ -60,9 +71,8 @@ module private Impl =
             |> Seq.rev
             |> Seq.takeWhile(fun (_,x) -> String.IsNullOrWhiteSpace(x) |> not)
             |> Seq.map(fun (_,x) -> x.Trim())
-            |> Seq.filter(fun x -> x.StartsWith("#"))
+            |> Seq.choose(function | Comment x -> x |> Some | _ -> None)
             |> Seq.rev
-            |> Seq.map(fun x -> x.TrimStart('#').TrimStart())
             |> String.concat " "
         else
             ""
@@ -78,6 +88,7 @@ let Parse filename (feature:string) =
 
     let scenarios = 
         linesWithLineNo
+        |> Seq.filter(snd >> function | Tags _ -> false | Comment _ -> false | _ -> true)
         |> Seq.mapFold(fun scenario (lineNo, line) ->
             match scenario, line with
             | _, Title "Scenario" x
@@ -105,6 +116,7 @@ let Parse filename (feature:string) =
     let background = 
         linesWithLineNo
         |> Seq.map snd
+        |> Seq.filter(function | Tags _ -> false | Comment _ -> false | _ -> true)
         |> Seq.skipWhile ((function | Title "Background" _ -> true | _ -> false) >> not)
         |> Seq.takeWhile ((function | Title "Scenario" _ -> true | Title "Scenario Outline" _ -> true | _ -> false) >> not)
         |> trimEmptyLines

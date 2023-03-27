@@ -127,10 +127,15 @@ let ``Comments``() =
     """
     Feature: First feature
 
+    Scenario: One
+    GIVEN some environment
+    WHEN some event happens
+    THEN the system should be in this state
+
     # this is a comment
     # over multiple lines
     @some-tag @one-more-tag
-    Scenario: One
+    Scenario: Two
     GIVEN some environment
     WHEN some event happens
     THEN the system should be in this state
@@ -139,6 +144,17 @@ let ``Comments``() =
     |> should haveSubstringIgnoringWhitespaces  """
       <div class="gherkin-scenario">
         <h3 class="gherkin-scenario-title">Scenario: One</h3>
+        <pre class="gherkin-scenario-body"><code><span class="gherkin-keyword">Given</span> some environment
+<span class="gherkin-keyword">When</span> some event happens
+<span class="gherkin-keyword">Then</span> the system should be in this state
+</code></pre>
+      </div>
+      <div class="gherkin-scenario">
+        <h3 class="gherkin-scenario-title">Scenario: Two</h3>
         <div><span class="gherkin-tags">Tags:</span>some-tag, one-more-tag</div>
         <div class="gherkin-description">this is a comment over multiple lines</div>
-        <pre class="gherkin-scenario-body">"""
+        <pre class="gherkin-scenario-body"><code><span class="gherkin-keyword">Given</span> some environment
+<span class="gherkin-keyword">When</span> some event happens
+<span class="gherkin-keyword">Then</span> the system should be in this state
+</code></pre>"""
+
