@@ -8,18 +8,18 @@
 
     <TickSpecBuildAssembly>$(MSBuildThisFileDirectory)..\tasks\net6.0\TickSpec.Build.exe</TickSpecBuildAssembly>
 
-    <FeatureFileHtmlInput Condition="'$(FeatureFileHtmlInput)' != ''">$(MSBuildProjectDirectory)</FeatureFileHtmlInput>
+    <FeatureFileHtmlInput Condition="'$(FeatureFileHtmlInput)' == ''">$(MSBuildProjectDirectory)</FeatureFileHtmlInput>
   </PropertyGroup>
 
   <ItemGroup>
     <FeatureFiles Include="*.feature" />
 
     <FeatureFilesForHtml Include="$(FeatureFileHtmlInput)\*.feature" />
-    <HtmlFeatureFiles Include="$(FeatureFileHtmlOutput)\*.html" />
+    <HtmlFeatureFiles Include="@(FeatureFilesForHtml -> '$(FeatureFileHtmlOutput)%(Filename).html')" />
 
     <EmbeddedResource Include="@(FeatureFiles)" />
 
-    <Compile Include="FeatureFixtures.fs" />
+    <Compile Include="FeatureFixtures.fs" Condition="Exists('FeatureFixtures.fs')" />
 
     <UpToDateCheckInput Include="@(FeatureFiles)" />
     <UpToDateCheckBuild Include="FeatureFixtures.fs" Original="@(FeatureFiles)" />
@@ -47,12 +47,14 @@
           BeforeTargets="BeforeCompile"
           Inputs="@(FeatureFilesForHtml)"
           Outputs="@(HtmlFeatureFiles)"
-          Condition="'$(FeatureFileHtmlOutput) != ''">
+          Condition="'$(FeatureFileHtmlOutput)' != ''">
 
-    <Exec Command="$(TickSpecBuildAssembly) doc $(FeatureFileHtmlInput) $(FeatureFileHtmlOutput)" />
-    
+    <Exec Command="$(TickSpecBuildAssembly) doc $(FeatureFileHtmlInput) $(FeatureFileHtmlOutput)" Outputs="@(HtmlFeatureFiles)">
+      <Output ItemName="HtmlFiles" TaskParameter="Outputs" />
+    </Exec>
+
     <ItemGroup>
-      <FileWrites Include="@(HtmlFeatureFiles)" />
+      <FileWrites Include="@(HtmlFiles)" />
     </ItemGroup>
   </Target>
 
