@@ -7,10 +7,15 @@
     <DefaultItemExcludes>$(DefaultItemExcludes);**/*.feature</DefaultItemExcludes>
 
     <TickSpecBuildAssembly>$(MSBuildThisFileDirectory)..\tasks\net6.0\TickSpec.Build.exe</TickSpecBuildAssembly>
+
+    <FeatureFileHtmlInput Condition="'$(FeatureFileHtmlInput)' != ''">$(MSBuildProjectDirectory)</FeatureFileHtmlInput>
   </PropertyGroup>
 
   <ItemGroup>
     <FeatureFiles Include="*.feature" />
+
+    <FeatureFilesForHtml Include="$(FeatureFileHtmlInput)\*.feature" />
+    <HtmlFeatureFiles Include="$(FeatureFileHtmlOutput)\*.html" />
 
     <EmbeddedResource Include="@(FeatureFiles)" />
 
@@ -26,7 +31,7 @@
           Inputs="@(FeatureFiles)"
           Outputs="$(MSBuildProjectDirectory)\FeatureFixtures.fs">
 
-    <Exec Command="$(TickSpecBuildAssembly) $(MSBuildProjectDirectory)\FeatureFixtures.fs" Outputs="$(MSBuildProjectDirectory)\FeatureFixtures.fs">
+    <Exec Command="$(TickSpecBuildAssembly) fixtures $(MSBuildProjectDirectory)\FeatureFixtures.fs" Outputs="$(MSBuildProjectDirectory)\FeatureFixtures.fs">
       <Output ItemName="FeatureFixtures" TaskParameter="Outputs" />
     </Exec>
     <ItemGroup>
@@ -36,6 +41,19 @@
 
   <Target Name="CleanupFeatureFileCodeBehind" BeforeTargets="Clean">
     <Delete Files="%(FeatureFiles.CodeBehindFile)" ContinueOnError="true" />
+  </Target>
+
+  <Target Name="GenerateFeatureFileHtml"
+          BeforeTargets="BeforeCompile"
+          Inputs="@(FeatureFilesForHtml)"
+          Outputs="@(HtmlFeatureFiles)"
+          Condition="'$(FeatureFileHtmlOutput) != ''">
+
+    <Exec Command="$(TickSpecBuildAssembly) doc $(FeatureFileHtmlInput) $(FeatureFileHtmlOutput)" />
+    
+    <ItemGroup>
+      <FileWrites Include="@(HtmlFeatureFiles)" />
+    </ItemGroup>
   </Target>
 
 </Project>
