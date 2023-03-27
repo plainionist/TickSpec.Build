@@ -11,13 +11,11 @@ module private Impl =
     let (|Keyword|_|) (keyword:string) (line:string) =
         if line.TrimStart().StartsWith(keyword + " ", StringComparison.OrdinalIgnoreCase) then
             let indent = line |> Seq.takeWhile Char.IsWhiteSpace |> Seq.length
-            (" ".PadLeft(indent) + keyword, line.Substring(keyword.Length + indent)) |> Some
+            (keyword.PadLeft(indent, ' '), line.Substring(keyword.Length + indent)) |> Some
          else
             None
 
     let generateStep (line:string) =
-        let doc = new XElement("div")
-
         match line with
         | Keyword "Given" (k,l) 
         | Keyword "When" (k,l)  
@@ -26,16 +24,29 @@ module private Impl =
         | Keyword "But" (k,l) -> 
             [
                 new XElement("span", new XAttribute("class", "gherkin-keyword"), k) :> obj
-                l :> obj
+                l
+                Environment.NewLine
             ]
-        | _ ->
-            line :> obj |> List.singleton
-        |> Seq.iter doc.Add
+        | _ -> 
+            [
+                line
+                Environment.NewLine
+            ]
 
-        doc
 
-    let generateScenarioBody (scenario:Scenario)=
-        let doc = new XElement("div", new XAttribute("class", "gherkin-scenario-body"))
+    let generateScenarioBody (lines:string list) =
+        new XElement("pre", 
+            new XAttribute("class", "gherkin-scenario-body"), 
+            new XElement("code",
+                lines
+                |> Seq.map generateStep))
+
+    let generateScenario (scenario:Scenario) =
+        let doc = new XElement("div", new XAttribute("class", "gherkin-scenario"))
+
+        doc.Add(new XElement("h3", [|
+            new XAttribute("class", "gherkin-scenario-title") :> obj
+            scenario.Name :> obj |]))
 
         match scenario.Tags with
         | [] -> ()
@@ -50,20 +61,7 @@ module private Impl =
         | text ->
             doc.Add(new XElement("div", new XAttribute("class", "gherkin-description"), text))
 
-        scenario.Body
-        |> Seq.map generateStep
-        |> Seq.iter doc.Add
-
-        doc
-
-    let generateScenario (scenario:Scenario) =
-        let doc = new XElement("div", new XAttribute("class", "gherkin-scenario"))
-
-        doc.Add(new XElement("h3", [|
-            new XAttribute("class", "gherkin-scenario-title") :> obj
-            scenario.Name :> obj |]))
-
-        doc.Add(generateScenarioBody scenario)
+        doc.Add(generateScenarioBody scenario.Body)
 
         doc
         
@@ -74,10 +72,7 @@ module private Impl =
             new XAttribute("class", "gherkin-scenario-title") :> obj
             "Background" :> obj |]))
 
-        doc.Add(new XElement("div",
-            new XAttribute("class", "gherkin-scenario-body"),
-            lines
-            |> Seq.map generateStep))
+        doc.Add(generateScenarioBody lines)
 
         doc
 
@@ -88,7 +83,9 @@ module private Impl =
             new XAttribute("class", "gherkin-feature-title") :> obj
             feature.Name |]))
 
-        doc.Add(generateBackground feature.Background)
+        match feature.Background with
+        | [] -> ()
+        | x -> doc.Add(generateBackground x)
 
         feature.Scenarios
         |> Seq.map generateScenario
@@ -98,7 +95,8 @@ module private Impl =
 
     let write (writer:TextWriter) (doc:XElement) =
         let settings = new XmlWriterSettings()
-        settings.Indent <- true
+        // explicitly disable so that <pre/> formatting is kept
+        settings.Indent <- false
 
         use xmlWriter = XmlWriter.Create(writer, settings)
         doc.WriteTo(xmlWriter)

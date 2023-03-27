@@ -31,7 +31,7 @@ let ``Scenario title is headline``() =
     |> should haveSubstringIgnoringWhitespaces  """<h3 class="gherkin-scenario-title">Scenario: One</h3>"""
         
 [<Test>]
-let ``Steps rendered as separate <div/>s``() =
+let ``Steps rendered as <code/>``() =
     """
     Feature: First feature
 
@@ -44,16 +44,13 @@ let ``Steps rendered as separate <div/>s``() =
     """
     |> TestApi.GenerateHtmlDoc
     |> should haveSubstringIgnoringWhitespaces  """
-      <div class="gherkin-scenario">
-        <h3 class="gherkin-scenario-title">Scenario: One</h3>
-        <div class="gherkin-scenario-body">
-          <div><span class="gherkin-keyword">Given</span> some environment</div>
-          <div> <span class="gherkin-keyword">And</span> with following setting</div>
-          <div><span class="gherkin-keyword">When</span> some event happens</div>
-          <div><span class="gherkin-keyword">Then</span> the system should be in this state</div>
-          <div><span class="gherkin-keyword">And</span> behave like this</div>
-        </div>
-      </div>"""
+      <div class="gherkin-scenario"><h3 class="gherkin-scenario-title">Scenario: One</h3>
+      <pre class="gherkin-scenario-body"><code><span class="gherkin-keyword">Given</span> some environment
+<span class="gherkin-keyword">And</span> with following setting
+<span class="gherkin-keyword">When</span> some event happens
+<span class="gherkin-keyword">Then</span> the system should be in this state
+<span class="gherkin-keyword">And</span> behave like this
+</code></pre></div>"""
         
 [<Test>]
 let ``With Background``() =
@@ -76,11 +73,8 @@ let ``With Background``() =
           <h2 class="gherkin-feature-title">First feature</h2>
           <div class="gherkin-scenario">
             <h3 class="gherkin-scenario-title">Background</h3>
-            <div class="gherkin-scenario-body">
-              <div><span class="gherkin-keyword">Given</span> some additional environment</div>
-            </div>
-          </div>
-          <div class="gherkin-scenario">"""
+            <pre class="gherkin-scenario-body"><code><span class="gherkin-keyword">Given</span> some additional environment
+</code></pre></div>"""
 
 [<Test>]
 let ``Step with multi line string``() =
@@ -99,19 +93,16 @@ let ``Step with multi line string``() =
     """
     |> TestApi.GenerateHtmlDoc
     |> should haveSubstringIgnoringWhitespaces  """
-      <div class="gherkin-scenario">
-        <h3 class="gherkin-scenario-title">Scenario: One</h3>
-        <div class="gherkin-scenario-body">
-          <div><span class="gherkin-keyword">Given</span> some environment</div>
-          <div> <span class="gherkin-keyword">And</span> the following value</div>
-          <div>    \"\"\"</div>
-          <div>    line 1</div>
-          <div>    line 2</div>
-          <div>    \"\"\"</div>
-          <div><span class="gherkin-keyword">When</span> some event happens</div>
-          <div><span class="gherkin-keyword">Then</span> the system should be in this state</div>
-        </div>
-      </div>"""
+      <div class="gherkin-scenario"><h3 class="gherkin-scenario-title">Scenario: One</h3>
+      <pre class="gherkin-scenario-body"><code><span class="gherkin-keyword">Given</span> some environment
+<span class="gherkin-keyword">And</span> the following value
+    \"\"\"
+    line 1
+    line 2
+    \"\"\"
+<span class="gherkin-keyword">When</span> some event happens
+<span class="gherkin-keyword">Then</span> the system should be in this state
+</code></pre></div>"""
 
 [<Test>]
 let ``Tags``() =
@@ -128,13 +119,8 @@ let ``Tags``() =
     |> should haveSubstringIgnoringWhitespaces  """
       <div class="gherkin-scenario">
         <h3 class="gherkin-scenario-title">Scenario: One</h3>
-        <div class="gherkin-scenario-body">
-          <div><span class="gherkin-tags">Tags:</span>some-tag, one-more-tag</div>
-          <div><span class="gherkin-keyword">Given</span> some environment</div>
-          <div><span class="gherkin-keyword">When</span> some event happens</div>
-          <div><span class="gherkin-keyword">Then</span> the system should be in this state</div>
-        </div>
-      </div>"""
+        <div><span class="gherkin-tags">Tags:</span>some-tag, one-more-tag</div>
+        <pre class="gherkin-scenario-body">"""
 
 [<Test>]
 let ``Comments``() =
@@ -153,11 +139,6 @@ let ``Comments``() =
     |> should haveSubstringIgnoringWhitespaces  """
       <div class="gherkin-scenario">
         <h3 class="gherkin-scenario-title">Scenario: One</h3>
-        <div class="gherkin-scenario-body">
-          <div><span class="gherkin-tags">Tags:</span>some-tag, one-more-tag</div>
-          <div class="gherkin-description">this is a comment over multiple lines</div>
-          <div><span class="gherkin-keyword">Given</span> some environment</div>
-          <div><span class="gherkin-keyword">When</span> some event happens</div>
-          <div><span class="gherkin-keyword">Then</span> the system should be in this state</div>
-        </div>
-      </div>"""
+        <div><span class="gherkin-tags">Tags:</span>some-tag, one-more-tag</div>
+        <div class="gherkin-description">this is a comment over multiple lines</div>
+        <pre class="gherkin-scenario-body">"""
