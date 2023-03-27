@@ -41,6 +41,18 @@ module private Impl =
         >> Seq.skipWhile String.IsNullOrWhiteSpace
         >> Seq.rev
 
+    let parseTags (lines:(int*string) list) lineNo =
+        if lineNo > 0 then
+            let tagsLine = lines |> Seq.find(fun (x,_) -> x = lineNo - 1) |> snd |> fun x -> x.Trim()
+            if tagsLine.StartsWith("@") then
+                tagsLine.Split(' ',StringSplitOptions.RemoveEmptyEntries)
+                |> Seq.map(fun x -> x.TrimStart('@'))
+                |> List.ofSeq
+            else
+                []
+        else
+            []
+
 let Parse filename (feature:string) =
     let linesWithLineNo = feature |> parseLines
 
@@ -62,6 +74,7 @@ let Parse filename (feature:string) =
                         Title = x
                         StartsAtLine = lineNo + 1 // skip scenario title
                         Body = []
+                        Tags = parseTags linesWithLineNo lineNo
                     }
                 scenario, newScenario |> Some
             | Some scenario, _ -> None, { scenario with Body = line::scenario.Body } |> Some

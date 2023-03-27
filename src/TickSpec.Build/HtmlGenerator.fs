@@ -37,15 +37,17 @@ module private Impl =
     let generateScenarioBody (scenario:Scenario)=
         let doc = new XElement("div", new XAttribute("class", "gherkin-scenario-body"))
 
-        //match scenario |> Scenario.Tags with
-        //| [||] -> ()
-        //| tags ->
-        //    doc.Add(new XElement("span", "Tags:"))
-        //    doc.Add(new XElement("span", String.Join(", ", tags)))
+        match scenario.Tags with
+        | [] -> ()
+        | tags ->
+            new XElement("div", 
+                new XElement("span", new XAttribute("class", "gherkin-tags"), "Tags:"), 
+                String.Join(", ", tags))
+            |> doc.Add
 
-        doc.Add(new XElement("div",
-            scenario.Body
-            |> Seq.map generateStep))
+        scenario.Body
+        |> Seq.map generateStep
+        |> Seq.iter doc.Add
 
         doc
 
@@ -68,6 +70,7 @@ module private Impl =
             "Background" :> obj |]))
 
         doc.Add(new XElement("div",
+            new XAttribute("class", "gherkin-scenario-body"),
             lines
             |> Seq.map generateStep))
 

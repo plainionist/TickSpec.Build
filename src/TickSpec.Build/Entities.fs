@@ -3,6 +3,7 @@
 type Scenario = {
     Name : string
     Title : string
+    Tags : string list
     Body : string list
     StartsAtLine : int
 }

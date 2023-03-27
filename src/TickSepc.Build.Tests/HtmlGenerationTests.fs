@@ -47,13 +47,11 @@ let ``Steps rendered as separate <div/>s``() =
       <div class="gherkin-scenario">
         <h3 class="gherkin-scenario-title">Scenario: One</h3>
         <div class="gherkin-scenario-body">
-          <div>
-            <div><span class="gherkin-keyword">Given</span> some environment</div>
-            <div> <span class="gherkin-keyword">And</span> with following setting</div>
-            <div><span class="gherkin-keyword">When</span> some event happens</div>
-            <div><span class="gherkin-keyword">Then</span> the system should be in this state</div>
-            <div><span class="gherkin-keyword">And</span> behave like this</div>
-          </div>
+          <div><span class="gherkin-keyword">Given</span> some environment</div>
+          <div> <span class="gherkin-keyword">And</span> with following setting</div>
+          <div><span class="gherkin-keyword">When</span> some event happens</div>
+          <div><span class="gherkin-keyword">Then</span> the system should be in this state</div>
+          <div><span class="gherkin-keyword">And</span> behave like this</div>
         </div>
       </div>"""
         
@@ -78,7 +76,7 @@ let ``With Background``() =
           <h2 class="gherkin-feature-title">First feature</h2>
           <div class="gherkin-scenario">
             <h3 class="gherkin-scenario-title">Background</h3>
-            <div>
+            <div class="gherkin-scenario-body">
               <div><span class="gherkin-keyword">Given</span> some additional environment</div>
             </div>
           </div>
@@ -104,15 +102,36 @@ let ``Step with multi line string``() =
       <div class="gherkin-scenario">
         <h3 class="gherkin-scenario-title">Scenario: One</h3>
         <div class="gherkin-scenario-body">
-          <div>
-            <div><span class="gherkin-keyword">Given</span> some environment</div>
-            <div> <span class="gherkin-keyword">And</span> the following value</div>
-            <div>    \"\"\"</div>
-            <div>    line 1</div>
-            <div>    line 2</div>
-            <div>    \"\"\"</div>
-            <div><span class="gherkin-keyword">When</span> some event happens</div>
-            <div><span class="gherkin-keyword">Then</span> the system should be in this state</div>
-          </div>
+          <div><span class="gherkin-keyword">Given</span> some environment</div>
+          <div> <span class="gherkin-keyword">And</span> the following value</div>
+          <div>    \"\"\"</div>
+          <div>    line 1</div>
+          <div>    line 2</div>
+          <div>    \"\"\"</div>
+          <div><span class="gherkin-keyword">When</span> some event happens</div>
+          <div><span class="gherkin-keyword">Then</span> the system should be in this state</div>
+        </div>
+      </div>"""
+
+[<Test>]
+let ``Tags``() =
+    """
+    Feature: First feature
+
+    @some-tag @one-more-tag
+    Scenario: One
+    GIVEN some environment
+    WHEN some event happens
+    THEN the system should be in this state
+    """
+    |> TestApi.GenerateHtmlDoc
+    |> should haveSubstringIgnoringWhitespaces  """
+      <div class="gherkin-scenario">
+        <h3 class="gherkin-scenario-title">Scenario: One</h3>
+        <div class="gherkin-scenario-body">
+          <div><span class="gherkin-tags">Tags:</span>some-tag, one-more-tag</div>
+          <div><span class="gherkin-keyword">Given</span> some environment</div>
+          <div><span class="gherkin-keyword">When</span> some event happens</div>
+          <div><span class="gherkin-keyword">Then</span> the system should be in this state</div>
         </div>
       </div>"""
