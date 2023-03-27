@@ -46,7 +46,7 @@ module private Impl =
 
         doc.Add(new XElement("h3", [|
             new XAttribute("class", "gherkin-scenario-title") :> obj
-            scenario.Name :> obj |]))
+            scenario.Title :> obj |]))
 
         match scenario.Tags with
         | [] -> ()
