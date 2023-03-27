@@ -45,6 +45,11 @@ module private Impl =
                 String.Join(", ", tags))
             |> doc.Add
 
+        match scenario.Description with
+        | "" -> ()
+        | text ->
+            doc.Add(new XElement("div", new XAttribute("class", "gherkin-description"), text))
+
         scenario.Body
         |> Seq.map generateStep
         |> Seq.iter doc.Add

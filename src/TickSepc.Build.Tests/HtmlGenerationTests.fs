@@ -135,3 +135,29 @@ let ``Tags``() =
           <div><span class="gherkin-keyword">Then</span> the system should be in this state</div>
         </div>
       </div>"""
+
+[<Test>]
+let ``Comments``() =
+    """
+    Feature: First feature
+
+    # this is a comment
+    # over multiple lines
+    @some-tag @one-more-tag
+    Scenario: One
+    GIVEN some environment
+    WHEN some event happens
+    THEN the system should be in this state
+    """
+    |> TestApi.GenerateHtmlDoc
+    |> should haveSubstringIgnoringWhitespaces  """
+      <div class="gherkin-scenario">
+        <h3 class="gherkin-scenario-title">Scenario: One</h3>
+        <div class="gherkin-scenario-body">
+          <div><span class="gherkin-tags">Tags:</span>some-tag, one-more-tag</div>
+          <div class="gherkin-description">this is a comment over multiple lines</div>
+          <div><span class="gherkin-keyword">Given</span> some environment</div>
+          <div><span class="gherkin-keyword">When</span> some event happens</div>
+          <div><span class="gherkin-keyword">Then</span> the system should be in this state</div>
+        </div>
+      </div>"""

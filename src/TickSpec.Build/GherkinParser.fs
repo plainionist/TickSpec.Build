@@ -53,6 +53,20 @@ module private Impl =
         else
             []
 
+    let parseComment (lines:(int*string) list) lineNo =
+        if lineNo > 0 then
+            lines
+            |> Seq.takeWhile(fun (x,_) -> x < lineNo)
+            |> Seq.rev
+            |> Seq.takeWhile(fun (_,x) -> String.IsNullOrWhiteSpace(x) |> not)
+            |> Seq.map(fun (_,x) -> x.Trim())
+            |> Seq.filter(fun x -> x.StartsWith("#"))
+            |> Seq.rev
+            |> Seq.map(fun x -> x.TrimStart('#').TrimStart())
+            |> String.concat " "
+        else
+            ""
+
 let Parse filename (feature:string) =
     let linesWithLineNo = feature |> parseLines
 
@@ -75,6 +89,7 @@ let Parse filename (feature:string) =
                         StartsAtLine = lineNo + 1 // skip scenario title
                         Body = []
                         Tags = parseTags linesWithLineNo lineNo
+                        Description = parseComment linesWithLineNo lineNo
                     }
                 scenario, newScenario |> Some
             | Some scenario, _ -> None, { scenario with Body = line::scenario.Body } |> Some
