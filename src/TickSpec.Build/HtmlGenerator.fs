@@ -8,10 +8,29 @@ open System.Xml
 [<AutoOpen>]
 module private Impl = 
 
+    let (|Keyword|_|) (keyword:string) (line:string) =
+        if line.TrimStart().StartsWith(keyword + " ", StringComparison.OrdinalIgnoreCase) then
+            let indent = line |> Seq.takeWhile Char.IsWhiteSpace |> Seq.length
+            (" ".PadLeft(indent) + keyword, line.Substring(keyword.Length + indent)) |> Some
+         else
+            None
+
     let generateStep (line:string) =
         let doc = new XElement("div")
 
-        doc.Add(line)
+        match line with
+        | Keyword "Given" (k,l) 
+        | Keyword "When" (k,l)  
+        | Keyword "Then" (k,l) 
+        | Keyword "And" (k,l)  
+        | Keyword "But" (k,l) -> 
+            [
+                new XElement("span", new XAttribute("class", "gherkin-keyword"), k) :> obj
+                l :> obj
+            ]
+        | _ ->
+            line :> obj |> List.singleton
+        |> Seq.iter doc.Add
 
         doc
 

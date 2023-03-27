@@ -48,11 +48,11 @@ let ``Steps rendered as separate <div/>s``() =
         <h3 class="gherkin-scenario-title">Scenario: One</h3>
         <div class="gherkin-scenario-body">
           <div>
-            <div>GIVEN some environment</div>
-            <div> AND with following setting</div>
-            <div>WHEN some event happens</div>
-            <div>THEN the system should be in this state</div>
-            <div>AND behave like this</div>
+            <div><span class="gherkin-keyword">Given</span> some environment</div>
+            <div> <span class="gherkin-keyword">And</span> with following setting</div>
+            <div><span class="gherkin-keyword">When</span> some event happens</div>
+            <div><span class="gherkin-keyword">Then</span> the system should be in this state</div>
+            <div><span class="gherkin-keyword">And</span> behave like this</div>
           </div>
         </div>
       </div>"""
@@ -79,7 +79,7 @@ let ``With Background``() =
           <div class="gherkin-scenario">
             <h3 class="gherkin-scenario-title">Background</h3>
             <div>
-              <div>GIVEN some additional environment</div>
+              <div><span class="gherkin-keyword">Given</span> some additional environment</div>
             </div>
           </div>
           <div class="gherkin-scenario">"""
@@ -105,14 +105,14 @@ let ``Step with multi line string``() =
         <h3 class="gherkin-scenario-title">Scenario: One</h3>
         <div class="gherkin-scenario-body">
           <div>
-            <div>GIVEN some environment</div>
-            <div> AND the following value</div>
+            <div><span class="gherkin-keyword">Given</span> some environment</div>
+            <div> <span class="gherkin-keyword">And</span> the following value</div>
             <div>    \"\"\"</div>
             <div>    line 1</div>
             <div>    line 2</div>
             <div>    \"\"\"</div>
-            <div>WHEN some event happens</div>
-            <div>THEN the system should be in this state</div>
+            <div><span class="gherkin-keyword">When</span> some event happens</div>
+            <div><span class="gherkin-keyword">Then</span> the system should be in this state</div>
           </div>
         </div>
       </div>"""
