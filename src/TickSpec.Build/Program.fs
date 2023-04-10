@@ -47,7 +47,6 @@ module private Impl =
             failwith "Output folder missing"
 
         let tocFormat = opts.TocFormat |> Option.bind Unions.fromString<HtmlGenerator.TocFormat>
-        opts.TocFormat |> printfn "%A"
         Targets.GenerateHtmlDocs tocFormat opts.Input opts.Output
         0
 

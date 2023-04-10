@@ -46,8 +46,6 @@
 
   <Target Name="GenerateFeatureFileHtml"
           BeforeTargets="BeforeCompile"
-          Inputs="@(FeatureFilesForHtml)"
-          Outputs="@(HtmlFeatureFiles)"
           Condition="'$(FeatureFileHtmlOutput)' != ''">
 
     <Exec Command="$(TickSpecBuildAssembly) doc $(FeatureFileHtmlInput) $(FeatureFileHtmlOutput) $(TickSpecBuildTocFormatArg)" Outputs="@(HtmlFeatureFiles)">
