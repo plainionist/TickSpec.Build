@@ -15,7 +15,7 @@ Automatically integrates into the build process when integrated via NuGet packag
 Additionally supports generating HTML documents for the feature files
 
 ```bash
-TickSpec.Build doc . html
+TickSpec.Build doc ./src ./html
 ```
 
 Use property ``FeatureFileHtmlInput`` to define a different input folder and
