@@ -1,7 +1,6 @@
 
-# TickSpec.Build
 
-Generates test classes to execute TickSpec (Gherkin/BDD) based specifications
+TickSpec.Build generates test classes to execute TickSpec (Gherkin/BDD) based specifications
 
 ```bash
 TickSpec.Build fixtures FeatureFixtures.fs
@@ -21,6 +20,10 @@ TickSpec.Build doc ./src ./html
 When generating the HTML files to the output location the F# project local folders are preserved.
 
 Using ``--toc html`` a HTML table of contents and with ``--toc json`` a Json table of contents can be generated.
+
+To integrate the HTML generation into the build process set the property ``FeatureFileHtmlOutput`` to the location 
+the HTML files should be generated too. By default, only the feature files local to this project are considered.
+You can change this by setting the property ``FeatureFileHtmlInput``.
 
 
 ## Story behind this project
