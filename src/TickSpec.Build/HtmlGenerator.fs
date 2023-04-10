@@ -9,8 +9,15 @@ type TocFormat =
     | Html
     | Json
 
+type TocEntry = { 
+    Title: string
+    Folders : string list
+    Filename: string 
+}
+
 [<AutoOpen>]
 module private Impl = 
+    open System.Text.Json
 
     let (|Keyword|_|) (keyword:string) (line:string) =
         if line.TrimStart().StartsWith(keyword + " ", StringComparison.OrdinalIgnoreCase) then
@@ -121,8 +128,19 @@ module private Impl =
 
         doc
 
-    let generateJsonToc (features:Feature list) =
-        ()
+    let generateJsonToc (writer:TextWriter) (features:Feature list) =
+        let entries =
+            features
+            |> Seq.map(fun x -> 
+                { 
+                    Title = x.Name
+                    Folders = x.Location.Folders
+                    Filename = x.Name + ".html" 
+                })
+            |> List.ofSeq
+
+        let json = JsonSerializer.Serialize(entries)
+        writer.WriteLine(json)
 
 let GenerateArticle (writer:TextWriter) (feature:Feature) =
     feature
@@ -136,4 +154,4 @@ let GenerateToC tocFormat (features:Feature list) (output:string) =
         generateHtmlToc features |> write writer
     | Json -> 
         use writer = new StreamWriter(Path.Combine(output, "toc.json"))
-        generateJsonToc features //|> write writer
+        generateJsonToc writer features 
