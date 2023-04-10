@@ -9,6 +9,7 @@
     <TickSpecBuildAssembly>$(MSBuildThisFileDirectory)..\tasks\net6.0\TickSpec.Build.exe</TickSpecBuildAssembly>
 
     <FeatureFileHtmlInput Condition="'$(FeatureFileHtmlInput)' == ''">$(MSBuildProjectDirectory)</FeatureFileHtmlInput>
+    <TickSpecBuildTocFormatArg Condition="'$(TickSpecBuildTocFormat)' != ''">--toc $(TickSpecBuildTocFormat)</TickSpecBuildTocFormatArg>
   </PropertyGroup>
 
   <ItemGroup>
@@ -49,7 +50,7 @@
           Outputs="@(HtmlFeatureFiles)"
           Condition="'$(FeatureFileHtmlOutput)' != ''">
 
-    <Exec Command="$(TickSpecBuildAssembly) doc $(FeatureFileHtmlInput) $(FeatureFileHtmlOutput)" Outputs="@(HtmlFeatureFiles)">
+    <Exec Command="$(TickSpecBuildAssembly) doc $(FeatureFileHtmlInput) $(FeatureFileHtmlOutput) $(TickSpecBuildTocFormatArg)" Outputs="@(HtmlFeatureFiles)">
       <Output ItemName="HtmlFiles" TaskParameter="Outputs" />
     </Exec>
 

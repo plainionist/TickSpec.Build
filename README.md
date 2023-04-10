@@ -25,6 +25,7 @@ Using ``--toc html`` a HTML table of contents and with ``--toc json`` a Json tab
 To integrate the HTML generation into the build process set the property ``FeatureFileHtmlOutput`` to the location 
 the HTML files should be generated too. By default, only the feature files local to this project are considered.
 You can change this by setting the property ``FeatureFileHtmlInput``.
+The format of the table of contents can be set using property ``TickSpecBuildTocFormat``.
 
 
 ## Story behind this project
