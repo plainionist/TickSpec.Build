@@ -24,11 +24,11 @@ module private Impl =
         writer.WriteLine($"type ``{feature.Name}``() = ")
         writer.WriteLine($"    inherit AbstractFeature()")
         writer.WriteLine()
-        writer.WriteLine($"    let scenarios = AbstractFeature.GetScenarios(Assembly.GetExecutingAssembly(), \"{feature.Filename}\")")
+        writer.WriteLine($"    let scenarios = AbstractFeature.GetScenarios(Assembly.GetExecutingAssembly(), \"{feature.Location.Filename}\")")
         writer.WriteLine()
 
         feature.Scenarios
-        |> Seq.iter (writeTestCase writer feature.Filename)
+        |> Seq.iter (writeTestCase writer feature.Location.Filename)
 
 let Generate (writer:TextWriter) features =
     

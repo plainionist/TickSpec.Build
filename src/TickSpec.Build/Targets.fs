@@ -22,7 +22,21 @@ let GenerateHtmlDocs tocFormat (input:string) (output:string) =
     printfn $"Generating documenation for '{input}' ..."
 
     let generate (feature:Feature) =
-        let file = Path.Combine(output, feature.Name + ".html")
+        let parts =
+            [
+                [output]
+                feature.Location.Folders
+                [feature.Name + ".html"]
+            ]
+            |> List.concat
+            |> Array.ofList
+
+        let file = Path.Combine(parts)
+
+        let folder = Path.GetDirectoryName(file)
+        if folder |> Directory.Exists |> not then
+            Directory.CreateDirectory(folder) |> ignore
+
         use writer = new StreamWriter(file)
         HtmlGenerator.GenerateArticle writer feature
 
@@ -32,9 +46,6 @@ let GenerateHtmlDocs tocFormat (input:string) (output:string) =
         |> List.map GherkinParser.Read
 
     if features |> Seq.isEmpty |> not then
-        if output |> Directory.Exists |> not then
-            Directory.CreateDirectory(output) |> ignore
-    
         features
         |> Seq.iter generate
 

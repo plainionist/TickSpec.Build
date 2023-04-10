@@ -9,9 +9,15 @@ type Scenario = {
     StartsAtLine : int
 }
 
+type Location = {
+    Filename : string
+    /// project local folders
+    Folders : string list
+}
+
 type Feature = {
     Name : string
-    Filename : string
+    Location : Location
     Background : string list
     Scenarios : Scenario list
 }

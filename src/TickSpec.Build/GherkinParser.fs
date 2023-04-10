@@ -77,7 +77,20 @@ module private Impl =
         else
             ""
 
-let Parse filename (feature:string) =
+    let getProjectLocalFolders (file:string) =
+        let rec find dir = 
+            seq {
+                if Directory.GetFiles(dir, "*.fsproj").Length > 0 then
+                    yield! []
+                else
+                    yield! dir |> Path.GetFileName |> List.singleton
+                    yield! dir |> Path.GetDirectoryName |> find 
+            }
+                
+        
+        file |> Path.GetDirectoryName |> find |> List.ofSeq
+
+let Parse (file:string) (feature:string) =
     let linesWithLineNo = feature |> parseLines
 
     let featureName =
@@ -130,12 +143,15 @@ let Parse filename (feature:string) =
     {
         Name = featureName
         Background = background
-        Filename = filename
+        Location = {
+            Filename = file |> Path.GetFileName
+            Folders = file |> getProjectLocalFolders
+        }
         Scenarios = scenarios
     }
 
 let Read file =
-    file |> File.ReadAllText |> Parse (Path.GetFileName(file))
+    file |> File.ReadAllText |> Parse file
 
 let FindAllFeatureFiles folder =
     let subDirectoriesToSkip = 
