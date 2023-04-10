@@ -104,10 +104,24 @@ module private Impl =
         use xmlWriter = XmlWriter.Create(writer, settings)
         doc.WriteTo(xmlWriter)
 
-    let generateHtmlToc (features:Feature list) (output:string) =
-        ()
+    let generateHtmlToc (features:Feature list) =
+        let doc = new XElement("article")
+        
+        doc.Add(new XElement("h2", "Table of contents"))
 
-    let generateJsonToc (features:Feature list) (output:string) =
+        features
+        |> Seq.map(fun x -> [x.Name + ".html"] |> List.append x.Location.Folders |> String.concat "/",x)
+        |> Seq.sortBy fst
+        |> Seq.map(fun (file,x) ->
+            new XElement("li", 
+                new XElement("a",[|
+                    new XAttribute("href", file) :> obj
+                    x.Name |])))
+        |> fun x -> doc.Add(new XElement("ul", x))
+
+        doc
+
+    let generateJsonToc (features:Feature list) =
         ()
 
 let GenerateArticle (writer:TextWriter) (feature:Feature) =
@@ -117,5 +131,9 @@ let GenerateArticle (writer:TextWriter) (feature:Feature) =
 
 let GenerateToC tocFormat (features:Feature list) (output:string) =
     match tocFormat with
-    | Html -> generateHtmlToc features output
-    | Json -> generateJsonToc features output
+    | Html -> 
+        use writer = new StreamWriter(Path.Combine(output, "toc.html"))
+        generateHtmlToc features |> write writer
+    | Json -> 
+        use writer = new StreamWriter(Path.Combine(output, "toc.json"))
+        generateJsonToc features //|> write writer

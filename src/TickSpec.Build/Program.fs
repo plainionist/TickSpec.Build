@@ -11,7 +11,7 @@ module Unions =
     
     let fromString<'a> (s:string) =
         try
-            match FSharpType.GetUnionCases(typeof<'a>, bindingFlags) |> Array.filter (fun case -> case.Name = s) with
+            match FSharpType.GetUnionCases(typeof<'a>, bindingFlags) |> Array.filter (fun case -> case.Name.Equals(s,StringComparison.OrdinalIgnoreCase)) with
             |[|case|] -> Some(FSharpValue.MakeUnion(case,[||]) :?> 'a)
             |_ -> None
         with
@@ -47,6 +47,7 @@ module private Impl =
             failwith "Output folder missing"
 
         let tocFormat = opts.TocFormat |> Option.bind Unions.fromString<HtmlGenerator.TocFormat>
+        opts.TocFormat |> printfn "%A"
         Targets.GenerateHtmlDocs tocFormat opts.Input opts.Output
         0
 
