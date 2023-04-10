@@ -18,7 +18,7 @@ let GenerateTestFixtures (output:string) =
         use writer = new StreamWriter(output)
         TestFixtureGenerator.Generate writer features
 
-let GenerateHtmlDocs (input:string) (output:string) =
+let GenerateHtmlDocs tocFormat (input:string) (output:string) =
     printfn $"Generating documenation for '{input}' ..."
 
     let generate (feature:Feature) =
@@ -37,6 +37,9 @@ let GenerateHtmlDocs (input:string) (output:string) =
     
         features
         |> Seq.iter generate
+
+        tocFormat
+        |> Option.iter(fun f -> HtmlGenerator.GenerateToC f features output)
 
         printfn $"Documentation generated to '{output}'"
     else

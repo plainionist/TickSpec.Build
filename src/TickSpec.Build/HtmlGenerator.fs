@@ -5,6 +5,10 @@ open System.IO
 open System.Xml.Linq
 open System.Xml
 
+type TocFormat =
+    | Html
+    | Json
+
 [<AutoOpen>]
 module private Impl = 
 
@@ -32,7 +36,6 @@ module private Impl =
                 line
                 Environment.NewLine
             ]
-
 
     let generateScenarioBody (lines:string list) =
         new XElement("pre", 
@@ -101,8 +104,18 @@ module private Impl =
         use xmlWriter = XmlWriter.Create(writer, settings)
         doc.WriteTo(xmlWriter)
 
+    let generateHtmlToc (features:Feature list) (output:string) =
+        ()
+
+    let generateJsonToc (features:Feature list) (output:string) =
+        ()
+
 let GenerateArticle (writer:TextWriter) (feature:Feature) =
     feature
     |> generateFeature
     |> write writer
 
+let GenerateToC tocFormat (features:Feature list) (output:string) =
+    match tocFormat with
+    | Html -> generateHtmlToc features output
+    | Json -> generateJsonToc features output
