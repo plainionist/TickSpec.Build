@@ -21,14 +21,24 @@ let GenerateTestFixtures (output:string) =
 let GenerateHtmlDocs (input:string) (output:string) =
     printfn $"Generating documenation for '{input}' ..."
 
-    let generate (feature:Feature) = 
+    let generate (feature:Feature) =
         let file = Path.Combine(output, feature.Name + ".html")
         use writer = new StreamWriter(file)
         HtmlGenerator.GenerateArticle writer feature
 
-    input
-    |> GherkinParser.FindAllFeatureFiles
-    |> List.map GherkinParser.Read
-    |> Seq.iter generate
+    let features =
+        input
+        |> GherkinParser.FindAllFeatureFiles
+        |> List.map GherkinParser.Read
 
-    printfn $"Documentation generated to '{output}'"
+    if features |> Seq.isEmpty |> not then
+        if output |> Directory.Exists |> not then
+            Directory.CreateDirectory(output) |> ignore
+    
+        features
+        |> Seq.iter generate
+
+        printfn $"Documentation generated to '{output}'"
+    else
+        printfn $"No feature files found"
+

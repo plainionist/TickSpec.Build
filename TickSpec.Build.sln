@@ -7,11 +7,12 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "TickSpec.Build", "src\TickS
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "TickSpec.CodeGen", "src\TickSpec.CodeGen\TickSpec.CodeGen.fsproj", "{03AB7496-2604-43FD-9888-6C839508EFD6}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TickSepc.Build.Tests", "src\TickSepc.Build.Tests\TickSepc.Build.Tests.fsproj", "{D2813B2D-AEA6-431D-A5E0-9FE8DEF93382}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "TickSepc.Build.Tests", "src\TickSepc.Build.Tests\TickSepc.Build.Tests.fsproj", "{D2813B2D-AEA6-431D-A5E0-9FE8DEF93382}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FF36D7BB-E078-4FF4-ACD8-0C8EB4E32FA2}"
 	ProjectSection(SolutionItems) = preProject
 		docs\Backlog.md = docs\Backlog.md
+		README.md = README.md
 	EndProjectSection
 EndProject
 Global

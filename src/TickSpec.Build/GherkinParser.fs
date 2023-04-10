@@ -138,8 +138,23 @@ let Read file =
     file |> File.ReadAllText |> Parse (Path.GetFileName(file))
 
 let FindAllFeatureFiles folder =
-    let options = EnumerationOptions()
-    options.RecurseSubdirectories <- true
-    
-    Directory.GetFiles(folder, "*.feature", options)
-    |> List.ofArray
+    let subDirectoriesToSkip = 
+        [
+            "node_modules"
+            "obj"
+            "bin"
+            "dist"
+        ]
+
+    let rec getAllFiles dir =
+        seq { 
+            yield! Directory.EnumerateFiles(dir, "*.feature")
+            for subDir in Directory.EnumerateDirectories(dir) do
+                let dirName = Path.GetFileName(subDir)
+                if subDirectoriesToSkip |> Seq.exists(fun x -> x.Equals(dirName, StringComparison.OrdinalIgnoreCase)) |> not then
+                    yield! getAllFiles subDir
+        }
+
+    folder 
+    |> getAllFiles
+    |> List.ofSeq
