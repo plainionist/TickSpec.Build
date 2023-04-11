@@ -90,7 +90,7 @@ module private Impl =
         
         file |> Path.GetDirectoryName |> find |> List.ofSeq
 
-let Parse (file:string) (feature:string) =
+let Parse location (feature:string) =
     let linesWithLineNo = feature |> parseLines
 
     let featureName =
@@ -143,15 +143,18 @@ let Parse (file:string) (feature:string) =
     {
         Name = featureName
         Background = background
-        Location = {
-            Filename = file |> Path.GetFileName
-            Folders = file |> getProjectLocalFolders
-        }
+        Location = location
         Scenarios = scenarios
     }
 
-let Read file =
-    file |> File.ReadAllText |> Parse file
+let Read (file:string) =
+    let location = 
+        {
+            Filename = file |> Path.GetFileName
+            Folders = file |> getProjectLocalFolders
+        }
+
+    file |> File.ReadAllText |> Parse location
 
 let FindAllFeatureFiles folder =
     let subDirectoriesToSkip = 

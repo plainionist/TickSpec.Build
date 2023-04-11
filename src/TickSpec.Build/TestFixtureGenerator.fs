@@ -13,7 +13,7 @@ module private Impl =
         writer.WriteLine()
 
     let writeTestCase (writer:TextWriter) location scenario =
-        let file = (location.Folders |> String.concat "/") + "." + location.Filename
+        let file = location.Folders@[location.Filename] |> String.concat "/"
         writer.WriteLine($"    [<Test>]")
         writer.WriteLine($"    member this.``{scenario.Title}``() =")
         writer.WriteLine($"#line {scenario.StartsAtLine} \"{file}\"")
@@ -21,7 +21,7 @@ module private Impl =
         writer.WriteLine()
 
     let writeTestFixture (writer:TextWriter) feature =
-        let resourceId = (feature.Location.Folders |> String.concat ".") + "." + feature.Location.Filename
+        let resourceId = feature.Location.Folders@[feature.Location.Filename] |> String.concat "." 
         writer.WriteLine($"[<TestFixture>]")
         writer.WriteLine($"type ``{feature.Name}``() = ")
         writer.WriteLine($"    inherit AbstractFeature()")
