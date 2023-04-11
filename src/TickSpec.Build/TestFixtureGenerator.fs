@@ -12,23 +12,25 @@ module private Impl =
         writer.WriteLine("open TickSpec.CodeGen")
         writer.WriteLine()
 
-    let writeTestCase (writer:TextWriter) featureFile scenario =
+    let writeTestCase (writer:TextWriter) location scenario =
+        let file = (location.Folders |> String.concat "/") + "." + location.Filename
         writer.WriteLine($"    [<Test>]")
         writer.WriteLine($"    member this.``{scenario.Title}``() =")
-        writer.WriteLine($"#line {scenario.StartsAtLine} \"{featureFile}\"")
+        writer.WriteLine($"#line {scenario.StartsAtLine} \"{file}\"")
         writer.WriteLine($"        this.RunScenario(scenarios, \"{scenario.Name}\")")
         writer.WriteLine()
 
     let writeTestFixture (writer:TextWriter) feature =
+        let resourceId = (feature.Location.Folders |> String.concat ".") + "." + feature.Location.Filename
         writer.WriteLine($"[<TestFixture>]")
         writer.WriteLine($"type ``{feature.Name}``() = ")
         writer.WriteLine($"    inherit AbstractFeature()")
         writer.WriteLine()
-        writer.WriteLine($"    let scenarios = AbstractFeature.GetScenarios(Assembly.GetExecutingAssembly(), \"{feature.Location.Filename}\")")
+        writer.WriteLine($"    let scenarios = AbstractFeature.GetScenarios(Assembly.GetExecutingAssembly(), \"{resourceId}\")")
         writer.WriteLine()
 
         feature.Scenarios
-        |> Seq.iter (writeTestCase writer feature.Location.Filename)
+        |> Seq.iter (writeTestCase writer feature.Location)
 
 let Generate (writer:TextWriter) features =
     

@@ -13,9 +13,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <FeatureFiles Include="*.feature" />
+    <FeatureFiles Include="**\*.feature" />
 
-    <FeatureFilesForHtml Include="$(FeatureFileHtmlInput)\*.feature" />
+    <FeatureFilesForHtml Include="$(FeatureFileHtmlInput)\**\*.feature" />
     <HtmlFeatureFiles Include="@(FeatureFilesForHtml -> '$(FeatureFileHtmlOutput)%(Filename).html')" />
 
     <EmbeddedResource Include="@(FeatureFiles)" />

@@ -16,7 +16,7 @@ let ``Single scenario``() =
         THEN the system should be in this state
         """
     ]
-    |> TestApi.GenerateTestFixtures
+    |> TestApi.GenerateTestFixtures "Dummy.feature"
     |> should haveSubstringIgnoringWhitespaces  """
         namespace Specification
 
@@ -36,6 +36,39 @@ let ``Single scenario``() =
                 this.RunScenario(scenarios, "Scenario: One")
             """
 
+[<Test>]
+let ``Feature file in sub folder``() =
+    [
+        """
+        Feature: First feature
+
+        Scenario: One
+        GIVEN some environment
+        WHEN some event happens
+        THEN the system should be in this state
+        """
+    ]
+    |> TestApi.GenerateTestFixtures "SubFeature/Dummy.feature"
+    |> should haveSubstringIgnoringWhitespaces  """
+        namespace Specification
+
+        open System.Reflection
+        open NUnit.Framework
+        open TickSpec.CodeGen
+
+        [<TestFixture>]
+        type ``First feature``() = 
+            inherit AbstractFeature()
+
+            let scenarios = AbstractFeature.GetScenarios(Assembly.GetExecutingAssembly(), "SubFeature.Dummy.feature")
+
+            [<Test>]
+            member this.``One``() =
+        #line 5 "SubFeature/Dummy.feature"
+                this.RunScenario(scenarios, "Scenario: One")
+            """
+
+
 
 [<Test>]
 let ``With background``() =
@@ -52,7 +85,7 @@ let ``With background``() =
         THEN the system should be in this state
         """
     ]
-    |> TestApi.GenerateTestFixtures
+    |> TestApi.GenerateTestFixtures "Dummy.feature"
     |> should haveSubstringIgnoringWhitespaces  """
         namespace Specification
 
@@ -103,7 +136,7 @@ let ``Multiple features with multipe scenario``() =
         THEN the system should be in this state
         """
     ]
-    |> TestApi.GenerateTestFixtures
+    |> TestApi.GenerateTestFixtures "Dummy.feature"
     |> should haveSubstringIgnoringWhitespaces  """
         namespace Specification
 
@@ -163,7 +196,7 @@ let ``Scenario outline``() =
             | no            | NotNeeded    |
         """
     ]
-    |> TestApi.GenerateTestFixtures
+    |> TestApi.GenerateTestFixtures "Dummy.feature"
     |> should haveSubstringIgnoringWhitespaces  """
         namespace Specification
 
