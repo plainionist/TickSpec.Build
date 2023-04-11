@@ -4,7 +4,7 @@
     <!-- https://stackoverflow.com/questions/2579605/msbuild-appears-to-only-use-old-output-files-for-custom-build-tools -->
     <UseHostCompilerIfAvailable>false</UseHostCompilerIfAvailable>
 
-    <DefaultItemExcludes>$(DefaultItemExcludes);**/*.feature</DefaultItemExcludes>
+    <DefaultItemExcludes>$(DefaultItemExcludes);**\*.feature</DefaultItemExcludes>
 
     <TickSpecBuildAssembly>$(MSBuildThisFileDirectory)..\tasks\net6.0\TickSpec.Build.exe</TickSpecBuildAssembly>
 
@@ -13,10 +13,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <FeatureFiles Include="**\*.feature" />
-
-    <FeatureFilesForHtml Include="$(FeatureFileHtmlInput)\**\*.feature" />
-    <HtmlFeatureFiles Include="@(FeatureFilesForHtml -> '$(FeatureFileHtmlOutput)%(Filename).html')" />
+    <!-- 
+      excluding node_modules explicitly here is not a nice solution but mandatory to not
+      run into max path issues which cause the wildcards not resolved at all which will cuase the 
+      compiler to fail
+    -->
+    <FeatureFiles Include="**\*.feature" Exclude="**\node_modules\**"/>
 
     <EmbeddedResource Include="@(FeatureFiles)" />
 
@@ -48,7 +50,7 @@
           BeforeTargets="BeforeCompile"
           Condition="'$(FeatureFileHtmlOutput)' != ''">
 
-    <Exec Command="$(TickSpecBuildAssembly) doc $(FeatureFileHtmlInput) $(FeatureFileHtmlOutput) $(TickSpecBuildTocFormatArg)" Outputs="@(HtmlFeatureFiles)">
+    <Exec Command="$(TickSpecBuildAssembly) doc $(FeatureFileHtmlInput) $(FeatureFileHtmlOutput) $(TickSpecBuildTocFormatArg)">
       <Output ItemName="HtmlFiles" TaskParameter="Outputs" />
     </Exec>
 
