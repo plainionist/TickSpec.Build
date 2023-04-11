@@ -139,7 +139,10 @@ module private Impl =
                 })
             |> List.ofSeq
 
-        let json = JsonSerializer.Serialize(entries)
+        let options = new JsonSerializerOptions()
+        options.PropertyNamingPolicy <- JsonNamingPolicy.CamelCase
+        options.WriteIndented <- true
+        let json = JsonSerializer.Serialize(entries, options)
         writer.WriteLine(json)
 
 let GenerateArticle (writer:TextWriter) (feature:Feature) =
