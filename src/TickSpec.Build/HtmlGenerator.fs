@@ -86,8 +86,14 @@ module private Impl =
 
         doc
 
-    let generateFeature (feature:Feature) =
+    let generateFeature stylesheet (feature:Feature) =
         let doc = new XElement("article")
+
+        stylesheet
+        |> Option.iter(fun (x:string) ->
+            doc.Add(new XElement("link",
+                new XAttribute("rel", "stylesheet"),
+                new XAttribute("href", x))))
 
         doc.Add(new XElement("h2", [|
             new XAttribute("class", "gherkin-feature-title") :> obj
@@ -115,23 +121,7 @@ module private Impl =
         let head = new XElement("head",
             new XElement("link",
                 new XAttribute("rel", "stylesheet"),
-                new XAttribute("href", "style.css")),
-            new XElement("script",
-                new XAttribute("type", "text/javascript"),
-                """
-                window.onload = function() {
-                  let iframe = document.getElementById("article");
-                  iframe.onload = function() { 
-                    console.log("frame loaded")
-                    let iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                    let link = iframeDoc.createElement("link");
-                    link.href = "style.css"; 
-                    link.rel = "stylesheet"; 
-                    link.type = "text/css"; 
-                    iframeDoc.head.appendChild(link);
-                  }; 
-                }                
-                """))
+                new XAttribute("href", "style.css")))
         
         let body = 
             let doc = new XElement("body")
@@ -173,12 +163,13 @@ module private Impl =
         let options = new JsonSerializerOptions()
         options.PropertyNamingPolicy <- JsonNamingPolicy.CamelCase
         options.WriteIndented <- true
+
         let json = JsonSerializer.Serialize(entries, options)
         writer.WriteLine(json)
 
-let GenerateArticle (writer:TextWriter) (feature:Feature) =
+let GenerateArticle (writer:TextWriter) stylesheet (feature:Feature) =
     feature
-    |> generateFeature
+    |> generateFeature stylesheet
     |> write writer
 
 let GenerateToC tocFormat (features:Feature list) (output:string) =

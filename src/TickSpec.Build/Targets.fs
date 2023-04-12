@@ -21,24 +21,36 @@ let GenerateTestFixtures (output:string) =
 let GenerateHtmlDocs tocFormat (input:string) (output:string) =
     printfn $"Generating documenation for '{input}' ..."
 
-    let generate (feature:Feature) =
-        let parts =
-            [
-                [output]
-                feature.Location.Folders
-                [feature.Name + ".html"]
-            ]
-            |> List.concat
-            |> Array.ofList
+    let stylesheet (feature:Feature) = 
+        match tocFormat with
+        | Some(HtmlGenerator.Html) ->
+            (feature.Location.Folders |> List.map(fun _ -> ".."))@["style.css"]
+            |> String.concat "/"
+            |> Some
+        | _ -> None
 
-        let file = Path.Combine(parts)
+    let createFilePath feature =
+        [
+            [output]
+            feature.Location.Folders
+            [feature.Name + ".html"]
+        ]
+        |> List.concat
+        |> Array.ofList
+        |> Path.Combine
 
+    let ensureFolderExists (file:string) =
         let folder = Path.GetDirectoryName(file)
         if folder |> Directory.Exists |> not then
             Directory.CreateDirectory(folder) |> ignore
 
+    let generate (feature:Feature) =
+        let file = feature |> createFilePath
+        
+        file |> ensureFolderExists
+
         use writer = new StreamWriter(file)
-        HtmlGenerator.GenerateArticle writer feature
+        HtmlGenerator.GenerateArticle writer (feature |> stylesheet) feature
 
     let features =
         input

@@ -18,7 +18,7 @@ let GenerateHtmlDoc (featureText:string) =
 
     featureText
     |> GherkinParser.Parse location
-    |> HtmlGenerator.GenerateArticle writer
+    |> HtmlGenerator.GenerateArticle writer None
 
     writer.ToString()        
 
