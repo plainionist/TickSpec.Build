@@ -112,21 +112,52 @@ module private Impl =
         doc.WriteTo(xmlWriter)
 
     let generateHtmlToc (features:Feature list) =
-        let doc = new XElement("article")
+        let head = new XElement("head",
+            new XElement("link",
+                new XAttribute("rel", "stylesheet"),
+                new XAttribute("href", "style.css")),
+            new XElement("script",
+                new XAttribute("type", "text/javascript"),
+                """
+                window.onload = function() {
+                  let iframe = document.getElementById("article");
+                  iframe.onload = function() { 
+                    console.log("frame loaded")
+                    let iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    let link = iframeDoc.createElement("link");
+                    link.href = "style.css"; 
+                    link.rel = "stylesheet"; 
+                    link.type = "text/css"; 
+                    iframeDoc.head.appendChild(link);
+                  }; 
+                }                
+                """))
         
-        doc.Add(new XElement("h2", "Table of contents"))
+        let body = 
+            let doc = new XElement("body")
+            doc.Add(new XElement("h2", "Table of contents"))
 
-        features
-        |> Seq.map(fun x -> [x.Name + ".html"] |> List.append x.Location.Folders |> String.concat "/",x)
-        |> Seq.sortBy fst
-        |> Seq.map(fun (file,x) ->
-            new XElement("li", 
-                new XElement("a",[|
-                    new XAttribute("href", file) :> obj
-                    x.Name |])))
-        |> fun x -> doc.Add(new XElement("ul", x))
+            features
+            |> Seq.map(fun x -> [x.Name + ".html"] |> List.append x.Location.Folders |> String.concat "/",x)
+            |> Seq.sortBy fst
+            |> Seq.map(fun (file,x) ->
+                new XElement("li", 
+                    new XElement("a",[|
+                        new XAttribute("href", file) :> obj
+                        new XAttribute("target", "article") :> obj
+                        x.Name |])))
+            |> fun x -> doc.Add(new XElement("ul", x))
 
-        doc
+            doc.Add(new XElement("iframe",
+                new XAttribute("id", "article"),
+                new XAttribute("name", "article"),
+                new XAttribute("width", "100%"),
+                new XAttribute("height", "80%"),
+                new XElement("div")))
+
+            doc
+
+        new XElement("html", head, body)
 
     let generateJsonToc (writer:TextWriter) (features:Feature list) =
         let entries =
