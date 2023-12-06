@@ -8,7 +8,15 @@ open NUnit.Framework
 
 type AbstractFeature() =
     static member GetScenarios(assembly:Assembly, featureFilename) =
-        let definitions = new StepDefinitions(assembly.GetTypes())
+        // support step definitions in shared assemblies of "same project"
+        let projectName = assembly.GetName().Name.Split('.') |> Seq.head
+        let deps = 
+            assembly.GetReferencedAssemblies()
+            |> Seq.filter(fun x -> x.Name.StartsWith(projectName, StringComparison.OrdinalIgnoreCase))
+            |> Seq.map Assembly.Load
+            |> List.ofSeq
+        let types = (assembly::deps) |> Seq.collect(fun x -> x.GetTypes()) |> Array.ofSeq
+        let definitions = new StepDefinitions(types)
 
         let getScenarios (featureFile:string) =
             let feature = definitions.GenerateFeature(featureFile, assembly.GetManifestResourceStream(featureFile))
