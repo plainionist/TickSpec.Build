@@ -3,7 +3,7 @@
   <metadata>
     <id>TickSpec.Build</id>
     <title>TickSpec.Build</title>
-    <version>2.10.0</version>
+    <version>3.0.0</version>
     <authors>Plainionist</authors>
     <owners>Plainionist</owners>
     <license type="expression">BSD-3-Clause</license>
@@ -11,12 +11,12 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Generates test classes to execute TickSpec (Gherkin/BDD) based specifications</description>
     <readme>docs\README.md</readme>
-    <copyright>Copyright 2023</copyright>
+    <copyright>Copyright 2024</copyright>
   </metadata>
   <files>
     <file src="..\README.md" target="docs\" />
     <file src="TickSpec.Build.targets" target="build" />
     <file src="..\src\TickSpec.Build\bin\Release\net6.0\*" target="tasks\net6.0" />
-    <file src="..\src\TickSpec.CodeGen\bin\Release\netstandard2.0\*" target="lib\netstandard2.0" />
+    <file src="..\src\TickSpec.CodeGen\bin\Release\net6.0\*" target="lib\net6.0" />
   </files>
 </package>
