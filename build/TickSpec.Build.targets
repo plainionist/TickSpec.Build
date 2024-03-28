@@ -25,7 +25,7 @@
     <Compile Include="FeatureFixtures.fs" Condition="Exists('FeatureFixtures.fs')" />
 
     <UpToDateCheckInput Include="@(FeatureFiles)" />
-    <UpToDateCheckBuild Include="FeatureFixtures.fs" Original="@(FeatureFiles)" />
+    <UpToDateCheckBuild Include="FeatureFixtures.fs" Original="@(FeatureFiles)" Condition="Exists('FeatureFixtures.fs')" />
     <CustomAdditionalCompileInputs Include="FeatureFixtures.fs" />
   </ItemGroup>
 
