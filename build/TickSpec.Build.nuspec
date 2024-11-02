@@ -3,7 +3,7 @@
   <metadata>
     <id>TickSpec.Build</id>
     <title>TickSpec.Build</title>
-    <version>3.0.1</version>
+    <version>4.0.0</version>
     <authors>Plainionist</authors>
     <owners>Plainionist</owners>
     <license type="expression">BSD-3-Clause</license>
@@ -16,7 +16,7 @@
   <files>
     <file src="..\README.md" target="docs\" />
     <file src="TickSpec.Build.targets" target="build" />
-    <file src="..\src\TickSpec.Build\bin\Release\net6.0\*" target="tasks\net6.0" />
-    <file src="..\src\TickSpec.CodeGen\bin\Release\net6.0\*" target="lib\net6.0" />
+    <file src="..\src\TickSpec.Build\bin\Release\net8.0\*" target="tasks\net8.0" />
+    <file src="..\src\TickSpec.CodeGen\bin\Release\net8.0\*" target="lib\net8.0" />
   </files>
 </package>
