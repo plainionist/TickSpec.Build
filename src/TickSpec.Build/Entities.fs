@@ -17,6 +17,7 @@ type Location = {
 
 type Feature = {
     Name : string
+    Description : string
     Location : Location
     Background : string list
     Scenarios : Scenario list

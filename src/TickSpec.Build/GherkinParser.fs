@@ -99,6 +99,20 @@ let Parse location (feature:string) =
         |> Seq.choose(function | Title "Feature" x -> x |> Some | _ -> None)
         |> Seq.exactlyOne
 
+    // any text between feature line and first scenario or background is feature description
+    let featureDescription =
+        linesWithLineNo
+        |> Seq.skipWhile (snd >> (function | Title "Feature" _ -> false | _ -> true))
+        |> Seq.skip 1 
+        |> Seq.takeWhile (snd >> (function
+            | Title "Scenario" _ -> false
+            | Title "Scenario Outline" _ -> false
+            | Title "Background" _ -> false
+            | _ -> true))
+        |> Seq.map(fun (_, x) -> x.Trim())
+        |> trimEmptyLines
+        |> String.concat " "
+
     let scenarios = 
         linesWithLineNo
         |> Seq.filter(snd >> function | Tags _ -> false | Comment _ -> false | _ -> true)
@@ -142,6 +156,7 @@ let Parse location (feature:string) =
     
     {
         Name = featureName
+        Description = featureDescription
         Background = background
         Location = location
         Scenarios = scenarios

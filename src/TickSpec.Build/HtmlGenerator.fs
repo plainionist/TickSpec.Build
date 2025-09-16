@@ -99,6 +99,11 @@ module private Impl =
             new XAttribute("class", "gherkin-feature-title") :> obj
             feature.Name |]))
 
+        match feature.Description with
+        | "" -> ()
+        | text ->
+            doc.Add(new XElement("div", new XAttribute("class", "gherkin-description"), text))
+
         match feature.Background with
         | [] -> ()
         | x -> doc.Add(generateBackground x)

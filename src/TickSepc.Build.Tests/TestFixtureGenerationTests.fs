@@ -68,8 +68,6 @@ let ``Feature file in sub folder``() =
                 this.RunScenario(scenarios, "Scenario: One")
             """
 
-
-
 [<Test>]
 let ``With background``() =
     [
@@ -106,7 +104,41 @@ let ``With background``() =
             """
 
 [<Test>]
-let ``Multiple features with multipe scenario``() =
+let ``Feature description``() =
+    [
+        """
+        Feature: First feature
+
+            There is some additional description of the feature
+
+        Scenario: One
+        GIVEN some environment
+        WHEN some event happens
+        THEN the system should be in this state
+        """
+    ]
+    |> TestApi.GenerateTestFixtures "Dummy.feature"
+    |> should haveSubstringIgnoringWhitespaces  """
+        namespace Specification
+
+        open System.Reflection
+        open NUnit.Framework
+        open TickSpec.CodeGen
+
+        [<TestFixture>]
+        type ``First feature``() = 
+            inherit AbstractFeature()
+
+            let scenarios = AbstractFeature.GetScenarios(Assembly.GetExecutingAssembly(), "Dummy.feature")
+
+            [<Test>]
+            member this.``One``() =
+        #line 7 "Dummy.feature"
+                this.RunScenario(scenarios, "Scenario: One")
+            """
+
+[<Test>]
+let ``Multiple features with multiple scenario``() =
     [
         """
         Feature: First feature

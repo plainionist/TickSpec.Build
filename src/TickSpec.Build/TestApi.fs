@@ -27,7 +27,7 @@ let GenerateTestFixtures file (featureText:string list) =
 
     let location = file |> getLocation
 
-    featureText 
+    featureText
     |> List.map (GherkinParser.Parse location)
     |> TestFixtureGenerator.Generate writer
 

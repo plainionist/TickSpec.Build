@@ -3,7 +3,7 @@
   <metadata>
     <id>TickSpec.Build</id>
     <title>TickSpec.Build</title>
-    <version>4.0.0</version>
+    <version>4.1.0</version>
     <authors>Plainionist</authors>
     <owners>Plainionist</owners>
     <license type="expression">BSD-3-Clause</license>
@@ -11,7 +11,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Generates test classes to execute TickSpec (Gherkin/BDD) based specifications</description>
     <readme>docs\README.md</readme>
-    <copyright>Copyright 2024</copyright>
+    <copyright>Copyright 2025</copyright>
   </metadata>
   <files>
     <file src="..\README.md" target="docs\" />
