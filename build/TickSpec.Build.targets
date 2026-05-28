@@ -6,7 +6,7 @@
 
     <DefaultItemExcludes>$(DefaultItemExcludes);**\*.feature</DefaultItemExcludes>
 
-    <TickSpecBuildAssembly>$(MSBuildThisFileDirectory)..\tasks\net8.0\TickSpec.Build.exe</TickSpecBuildAssembly>
+    <TickSpecBuildAssembly>dotnet "$(MSBuildThisFileDirectory)../tasks/net8.0/TickSpec.Build.dll"</TickSpecBuildAssembly>
 
     <FeatureFileHtmlInput Condition="'$(FeatureFileHtmlInput)' == ''">$(MSBuildProjectDirectory)</FeatureFileHtmlInput>
     <TickSpecBuildTocFormatArg Condition="'$(TickSpecBuildTocFormat)' != ''">--toc $(TickSpecBuildTocFormat)</TickSpecBuildTocFormatArg>
@@ -32,9 +32,9 @@
   <Target Name="GenerateFeatureFileCodeBehind"
           BeforeTargets="BeforeCompile"
           Inputs="@(FeatureFiles)"
-          Outputs="$(MSBuildProjectDirectory)\FeatureFixtures.fs">
+          Outputs="$(MSBuildProjectDirectory)/FeatureFixtures.fs">
 
-    <Exec Command="$(TickSpecBuildAssembly) fixtures $(MSBuildProjectDirectory)\FeatureFixtures.fs" Outputs="$(MSBuildProjectDirectory)\FeatureFixtures.fs">
+    <Exec Command="$(TickSpecBuildAssembly) fixtures $(MSBuildProjectDirectory)/FeatureFixtures.fs" Outputs="$(MSBuildProjectDirectory)/FeatureFixtures.fs">
       <Output ItemName="FeatureFixtures" TaskParameter="Outputs" />
     </Exec>
     <ItemGroup>
