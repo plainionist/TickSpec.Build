@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <OutputType>exe</OutputType>
+    <RollForward>LatestMajor</RollForward>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NoWarn>1591</NoWarn>
     <WarningsNotAsErrors>618,672</WarningsNotAsErrors>
