@@ -22,8 +22,6 @@
 
     <EmbeddedResource Include="@(FeatureFiles)" />
 
-    <Compile Include="FeatureFixtures.fs" Condition="Exists('FeatureFixtures.fs')" />
-
     <UpToDateCheckInput Include="@(FeatureFiles)" />
     <UpToDateCheckBuild Include="FeatureFixtures.fs" Original="@(FeatureFiles)" Condition="Exists('FeatureFixtures.fs')" />
     <CustomAdditionalCompileInputs Include="FeatureFixtures.fs" />
@@ -38,6 +36,7 @@
       <Output ItemName="FeatureFixtures" TaskParameter="Outputs" />
     </Exec>
     <ItemGroup>
+      <Compile Include="FeatureFixtures.fs" />
       <FileWrites Include="@(FeatureFixtures)" />
     </ItemGroup>
   </Target>
