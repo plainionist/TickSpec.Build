@@ -189,3 +189,16 @@ let ``Feature description``() =
       <h2 class="gherkin-feature-title">First feature</h2>
       <div class="gherkin-description">There is some additional description of the feature - Spanning multiple lines</div>
       """
+
+[<Test>]
+let ``Line endings LF (Unix style)``() =
+    "Feature: LF Feature\n\nScenario: One\nGIVEN some environment\nWHEN some event happens\nTHEN the system should be in this state"
+    |> TestApi.GenerateHtmlDoc
+    |> should haveSubstringIgnoringWhitespaces  """<h2 class="gherkin-feature-title">LF Feature</h2>"""
+
+[<Test>]
+let ``Line endings CRLF (Windows style)``() =
+    "Feature: CRLF Feature\r\n\r\nScenario: One\r\nGIVEN some environment\r\nWHEN some event happens\r\nTHEN the system should be in this state"
+    |> TestApi.GenerateHtmlDoc
+    |> should haveSubstringIgnoringWhitespaces  """<h2 class="gherkin-feature-title">CRLF Feature</h2>"""
+

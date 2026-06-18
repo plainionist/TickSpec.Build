@@ -247,3 +247,20 @@ let ``Scenario outline``() =
         #line 5 "Dummy.feature"
                 this.RunScenario(scenarios, "Scenario Outline: Computing the state")
             """
+
+[<Test>]
+let ``Line endings LF (Unix style)``() =
+    [
+        "Feature: LF Feature\n\nScenario: One\nGIVEN some environment\nWHEN some event happens\nTHEN the system should be in this state"
+    ]
+    |> TestApi.GenerateTestFixtures "Dummy.feature"
+    |> should haveSubstringIgnoringWhitespaces  """type ``LF Feature``()"""
+
+[<Test>]
+let ``Line endings CRLF (Windows style)``() =
+    [
+        "Feature: CRLF Feature\r\n\r\nScenario: One\r\nGIVEN some environment\r\nWHEN some event happens\r\nTHEN the system should be in this state"
+    ]
+    |> TestApi.GenerateTestFixtures "Dummy.feature"
+    |> should haveSubstringIgnoringWhitespaces  """type ``CRLF Feature``()"""
+

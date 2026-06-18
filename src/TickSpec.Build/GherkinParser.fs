@@ -20,7 +20,9 @@ module private Impl =
 
     // Line numbers start at 1 as in any editor
     let parseLines (text:string)=
-        let lines = text.Split(Environment.NewLine)
+        // Normalize line endings: convert CRLF to LF to handle both Windows and Unix formats
+        let normalized = text.Replace("\r\n", "\n")
+        let lines = normalized.Split('\n')
 
         let globalIndent = lines |> detectGlobalIndent
 
