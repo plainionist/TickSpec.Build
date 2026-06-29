@@ -138,6 +138,26 @@ let ``Feature description``() =
             """
 
 [<Test>]
+let ``Feature is not first line``() =
+    [
+        """
+        # file header comment
+        Feature: First feature
+
+        Scenario: One
+        GIVEN some environment
+        WHEN some event happens
+        THEN the system should be in this state
+        """
+    ]
+    |> TestApi.GenerateTestFixtures "Dummy.feature"
+    |> should haveSubstringIgnoringWhitespaces  """
+            member this.``One``() =
+        #line 6 "Dummy.feature"
+                this.RunScenario(scenarios, "Scenario: One")
+            """
+
+[<Test>]
 let ``Multiple features with multiple scenario``() =
     [
         """

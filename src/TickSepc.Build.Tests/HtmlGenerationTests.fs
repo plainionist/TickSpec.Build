@@ -136,6 +136,22 @@ let ``Tags``() =
         <pre class="gherkin-scenario-body">"""
 
 [<Test>]
+let ``Feature is not first line``() =
+    """
+    # file header comment
+    Feature: First feature
+
+    Scenario: One
+    GIVEN some environment
+    WHEN some event happens
+    THEN the system should be in this state
+    """
+    |> TestApi.GenerateHtmlDoc
+    |> should haveSubstringIgnoringWhitespaces  """
+        <h2 class="gherkin-feature-title">First feature</h2>
+        """
+
+[<Test>]
 let ``Comments``() =
     """
     Feature: First feature
