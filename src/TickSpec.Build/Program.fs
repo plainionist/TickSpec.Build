@@ -22,6 +22,11 @@ type FixturesOptions = {
     [<Value(0, MetaName="file", HelpText = "F# file the fixtures shall be generated into (feature files are collected from this folder)")>] File : string
 }
 
+[<Verb("verify-bindings", HelpText = "Verifies step bindings in a compiled test assembly without executing scenarios")>]
+type VerifyBindingsOptions = {
+    [<Value(0, MetaName="assembly", HelpText = "Compiled test assembly containing embedded feature files")>] Assembly : string
+}
+
 [<Verb("doc", HelpText = "Generates HTML documentation of the feature files")>]
 type DocOptions = {
     [<Value(0, MetaName="input", HelpText = "Folder to search for *.feature files")>] Input : string
@@ -37,6 +42,13 @@ module private Impl =
 
         Targets.GenerateTestFixtures opts.File
 
+        0
+
+    let runVerifyBindings opts =
+        if String.IsNullOrWhiteSpace(opts.Assembly) then
+            failwith "Assembly to verify missing"
+
+        BindingVerifier.Verify opts.Assembly
         0
 
     let runDoc opts = 
@@ -72,8 +84,8 @@ let main args =
             settings.HelpWriter <- Console.Out
         )
 
-        let result = parser.ParseArguments<FixturesOptions, DocOptions> args
-        result.MapResult(runFixtures, runDoc, printErrors)
+        let result = parser.ParseArguments<FixturesOptions, DocOptions, VerifyBindingsOptions> args
+        result.MapResult(runFixtures, runDoc, runVerifyBindings, printErrors)
     with
         | ex -> 
             Console.Error.WriteLine($"ERROR: {ex.Message}")

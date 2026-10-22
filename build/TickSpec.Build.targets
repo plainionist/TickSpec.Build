@@ -10,6 +10,7 @@
 
     <FeatureFileHtmlInput Condition="'$(FeatureFileHtmlInput)' == ''">$(MSBuildProjectDirectory)</FeatureFileHtmlInput>
     <TickSpecBuildTocFormatArg Condition="'$(TickSpecBuildTocFormat)' != ''">--toc $(TickSpecBuildTocFormat)</TickSpecBuildTocFormatArg>
+    <TickSpecBuildVerifyBindings Condition="'$(TickSpecBuildVerifyBindings)' == ''">false</TickSpecBuildVerifyBindings>
   </PropertyGroup>
 
   <ItemGroup>
@@ -39,6 +40,12 @@
       <Compile Include="FeatureFixtures.fs" />
       <FileWrites Include="@(FeatureFixtures)" />
     </ItemGroup>
+  </Target>
+
+  <Target Name="VerifyFeatureFileBindings"
+          AfterTargets="Build"
+          Condition="'$(TickSpecBuildVerifyBindings)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(IsCrossTargetingBuild)' != 'true' and '@(FeatureFiles)' != ''">
+    <Exec Command="$(TickSpecBuildAssembly) verify-bindings &quot;$(TargetPath)&quot;" />
   </Target>
 
   <Target Name="CleanupFeatureFileCodeBehind" BeforeTargets="Clean">

@@ -12,6 +12,7 @@
     <Compile Include="Assertions.fs" />
     <Compile Include="HtmlGenerationTests.fs" />
     <Compile Include="TestFixtureGenerationTests.fs" />
+    <Compile Include="BindingVerificationTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

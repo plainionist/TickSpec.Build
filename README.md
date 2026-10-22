@@ -9,6 +9,29 @@ TickSpec.Build fixtures FeatureFixtures.fs
 
 It automatically integrates into the build process as "BeforeCompile" target when integrated via NuGet package.
 
+## Build-time binding verification
+
+Optionally fail the build if an embedded feature has a missing or ambiguous step binding.
+Verification runs after compilation, uses the same binding discovery as test execution, and does not execute scenarios.
+It is disabled by default. Enable it in the project consuming TickSpec.Build:
+
+```xml
+<PropertyGroup>
+  <TickSpecBuildVerifyBindings>true</TickSpecBuildVerifyBindings>
+</PropertyGroup>
+```
+
+For a single build, use `dotnet build -p:TickSpecBuildVerifyBindings=true`, or set the
+environment variable `TickSpecBuildVerifyBindings=true` before building.
+Set the property to `false` to disable verification again.
+
+Verification checks binding resolution, not parameter conversions or dependencies resolved during scenario execution.
+The command can also be run directly against a compiled test assembly:
+
+```bash
+TickSpec.Build verify-bindings MyProject.Tests.dll
+```
+
 
 ## HTML documentation
 

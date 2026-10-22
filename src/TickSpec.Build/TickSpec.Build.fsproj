@@ -15,8 +15,13 @@
     <Compile Include="TestFixtureGenerator.fs" />
     <Compile Include="HtmlGenerator.fs" />
     <Compile Include="TestApi.fs" />
+    <Compile Include="BindingVerifier.fs" />
     <Compile Include="Targets.fs" />
     <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TickSpec.CodeGen\TickSpec.CodeGen.fsproj" />
   </ItemGroup>
 
   <ItemGroup>
