@@ -16,7 +16,7 @@
   <files>
     <file src="..\README.md" target="docs\" />
     <file src="TickSpec.Build.targets" target="build" />
-    <file src="..\src\TickSpec.Build\bin\Release\net8.0\*" target="tasks\net8.0" />
-    <file src="..\src\TickSpec.CodeGen\bin\Release\net8.0\*" target="lib\net8.0" />
+    <file src="..\src\TickSpec.Build\bin\Release\net10.0\*" target="tasks\net10.0" />
+    <file src="..\src\TickSpec.CodeGen\bin\Release\net10.0\*" target="lib\net10.0" />
   </files>
 </package>

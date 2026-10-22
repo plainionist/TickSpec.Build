@@ -9,6 +9,8 @@ TickSpec.Build fixtures FeatureFixtures.fs
 
 It automatically integrates into the build process as "BeforeCompile" target when integrated via NuGet package.
 
+Requires the .NET 10 SDK; consuming test projects must target `net10.0` or later.
+
 ## Build-time binding verification
 
 Optionally fail the build if an embedded feature has a missing or ambiguous step binding.

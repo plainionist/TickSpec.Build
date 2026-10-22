@@ -6,7 +6,7 @@
 
     <DefaultItemExcludes>$(DefaultItemExcludes);**\*.feature</DefaultItemExcludes>
 
-    <TickSpecBuildAssembly>dotnet "$(MSBuildThisFileDirectory)../tasks/net8.0/TickSpec.Build.dll"</TickSpecBuildAssembly>
+    <TickSpecBuildAssembly>dotnet "$(MSBuildThisFileDirectory)../tasks/net10.0/TickSpec.Build.dll"</TickSpecBuildAssembly>
 
     <FeatureFileHtmlInput Condition="'$(FeatureFileHtmlInput)' == ''">$(MSBuildProjectDirectory)</FeatureFileHtmlInput>
     <TickSpecBuildTocFormatArg Condition="'$(TickSpecBuildTocFormat)' != ''">--toc $(TickSpecBuildTocFormat)</TickSpecBuildTocFormatArg>

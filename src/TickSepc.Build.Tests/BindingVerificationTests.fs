@@ -33,7 +33,7 @@ let private buildFeatures (features:(string * string) list) (propertyValue:strin
         let project =
             $"""<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>BindingProbe.Tests</AssemblyName>
     <OutputPath>{output}</OutputPath>
     <NuGetAudit>false</NuGetAudit>
@@ -54,7 +54,7 @@ let private buildFeatures (features:(string * string) list) (propertyValue:strin
         Directory.CreateDirectory(sharedFolder) |> ignore
         File.WriteAllText(Path.Combine(sharedFolder, "Shared.fsproj"), $"""<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>BindingProbe.Shared</AssemblyName>
     <NuGetAudit>false</NuGetAudit>
   </PropertyGroup>
