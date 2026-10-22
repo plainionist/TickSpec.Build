@@ -42,7 +42,7 @@ let private buildFeatures (features:(string * string) list) (propertyValue:strin
   <ItemGroup>
     <Compile Include="Steps.fs" />
     <ProjectReference Include="Shared\Shared.fsproj" />
-    <PackageReference Update="FSharp.Core" Version="8.0.401" />
+    <PackageReference Update="FSharp.Core" Version="10.1.402" />
     {references}
   </ItemGroup>
   <Import Project="{SecurityElement.Escape(targets)}" />
@@ -60,7 +60,7 @@ let private buildFeatures (features:(string * string) list) (propertyValue:strin
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Steps.fs" />
-    <PackageReference Update="FSharp.Core" Version="8.0.401" />
+    <PackageReference Update="FSharp.Core" Version="10.1.402" />
     {references}
   </ItemGroup>
 </Project>""")
@@ -208,10 +208,10 @@ let ``Every embedded feature is verified including subfolders``() =
 [<Test>]
 let ``Missing assembly is an explicit error``() =
     let missing = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".dll")
-    Assert.That(TestDelegate(fun () -> BindingVerifier.Verify missing), Throws.TypeOf<FileNotFoundException>())
+    Assert.That(Action(fun () -> BindingVerifier.Verify missing), Throws.TypeOf<FileNotFoundException>())
 
 [<Test>]
 let ``Assembly without embedded features is an explicit error``() =
     Assert.That(
-        TestDelegate(fun () -> BindingVerifier.Verify typeof<Feature>.Assembly.Location),
+        Action(fun () -> BindingVerifier.Verify typeof<Feature>.Assembly.Location),
         Throws.TypeOf<InvalidOperationException>().With.Message.Contains("No embedded .feature resources"))

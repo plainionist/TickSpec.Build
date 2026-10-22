@@ -26,11 +26,11 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser.FSharp" Version="2.9.1" />
-    <PackageReference Include="TickSpec" Version="2.0.3" />
+    <PackageReference Include="TickSpec" Version="2.0.5" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="8.0.401" />
+    <PackageReference Update="FSharp.Core" Version="10.1.402" />
   </ItemGroup>
 
 </Project>
