@@ -5,10 +5,37 @@ open System.Diagnostics
 open System.IO
 open System.Reflection
 open System.Security
+open System.Text.Json
+open System.Xml.Linq
 open NUnit.Framework
 open TickSpec
 open TickSpec.Build
 open TickSpec.CodeGen
+
+let private repositoryRoot = Path.GetFullPath(Path.Combine(__SOURCE_DIRECTORY__, "..", ".."))
+
+let private runDotnet folder (arguments:string list) (environmentValue:string option) =
+    let startInfo = ProcessStartInfo("dotnet")
+    startInfo.WorkingDirectory <- folder
+    startInfo.UseShellExecute <- false
+    startInfo.RedirectStandardOutput <- true
+    startInfo.RedirectStandardError <- true
+    for argument in arguments do
+        startInfo.ArgumentList.Add(argument)
+    startInfo.Environment.Remove("TickSpecBuildVerifyBindings") |> ignore
+    environmentValue |> Option.iter(fun value -> startInfo.Environment["TickSpecBuildVerifyBindings"] <- value)
+
+    use child = new Process()
+    child.StartInfo <- startInfo
+    if child.Start() |> not then
+        failwith "Could not start dotnet"
+    let stdout = child.StandardOutput.ReadToEndAsync()
+    let stderr = child.StandardError.ReadToEndAsync()
+    if child.WaitForExit(120000) |> not then
+        child.Kill(true)
+        child.WaitForExit()
+        failwith ("dotnet timed out: " + String.concat " " arguments)
+    child.ExitCode, stdout.GetAwaiter().GetResult() + stderr.GetAwaiter().GetResult()
 
 let private reference (assembly:Assembly) =
     let name = assembly.GetName().Name
@@ -23,7 +50,7 @@ let private buildFeatures (features:(string * string) list) (propertyValue:strin
             [ typeof<AbstractFeature>.Assembly; typeof<StepDefinitions>.Assembly; typeof<TestAttribute>.Assembly ]
             |> List.map reference
             |> String.concat Environment.NewLine
-        let targets = Path.GetFullPath(Path.Combine(__SOURCE_DIRECTORY__, "..", "..", "build", "TickSpec.Build.targets"))
+        let targets = Path.Combine(repositoryRoot, "build", "TickSpec.Build.targets")
         let tool = SecurityElement.Escape(typeof<Feature>.Assembly.Location)
         let property =
             propertyValue
@@ -104,27 +131,9 @@ type Steps =
             Directory.CreateDirectory(Path.GetDirectoryName(path)) |> ignore
             File.WriteAllText(path, text)
 
-        let startInfo = ProcessStartInfo("dotnet")
-        startInfo.WorkingDirectory <- folder
-        startInfo.UseShellExecute <- false
-        startInfo.RedirectStandardOutput <- true
-        startInfo.RedirectStandardError <- true
-        for argument in [ "build"; projectFile; "--nologo"; "--verbosity"; "minimal"; "--disable-build-servers" ] do
-            startInfo.ArgumentList.Add(argument)
-        startInfo.Environment.Remove("TickSpecBuildVerifyBindings") |> ignore
-        environmentValue |> Option.iter(fun value -> startInfo.Environment["TickSpecBuildVerifyBindings"] <- value)
-
-        use child = new Process()
-        child.StartInfo <- startInfo
-        if child.Start() |> not then
-            failwith "Could not start the consuming project's build"
-        let stdout = child.StandardOutput.ReadToEndAsync()
-        let stderr = child.StandardError.ReadToEndAsync()
-        if child.WaitForExit(120000) |> not then
-            child.Kill(true)
-            child.WaitForExit()
-            failwith "The consuming project's build timed out"
-        child.ExitCode, stdout.GetAwaiter().GetResult() + stderr.GetAwaiter().GetResult()
+        runDotnet folder
+            [ "build"; projectFile; "--nologo"; "--verbosity"; "minimal"; "--disable-build-servers" ]
+            environmentValue
     finally
         Directory.Delete(folder, true)
 
@@ -215,3 +224,116 @@ let ``Assembly without embedded features is an explicit error``() =
     Assert.That(
         Action(fun () -> BindingVerifier.Verify typeof<Feature>.Assembly.Location),
         Throws.TypeOf<InvalidOperationException>().With.Message.Contains("No embedded .feature resources"))
+
+[<Test>]
+let ``NuGet package restores runtime binding dependencies transitively``() =
+    let specification = XDocument.Load(Path.Combine(repositoryRoot, "build", "TickSpec.Build.nuspec"))
+    let runtimeProject = XDocument.Load(Path.Combine(repositoryRoot, "src", "TickSpec.CodeGen", "TickSpec.CodeGen.fsproj"))
+    let framework = runtimeProject.Descendants(XName.Get "TargetFramework") |> Seq.exactlyOne |> fun x -> x.Value
+    let group =
+        specification.Descendants(XName.Get "group")
+        |> Seq.filter(fun x -> x.Attribute(XName.Get "targetFramework").Value = framework)
+        |> Seq.exactlyOne
+    let dependencies =
+        group.Elements(XName.Get "dependency")
+        |> Seq.map(fun x -> x.Attribute(XName.Get "id").Value, x.Attribute(XName.Get "version").Value)
+        |> Map.ofSeq
+    let references =
+        runtimeProject.Descendants(XName.Get "PackageReference")
+        |> Seq.map(fun x ->
+            let id =
+                match x.Attribute(XName.Get "Include") with
+                | null -> x.Attribute(XName.Get "Update").Value
+                | attribute -> attribute.Value
+            id, x.Attribute(XName.Get "Version").Value)
+        |> Map.ofSeq
+    Assert.That(dependencies, Is.EqualTo<Map<string,string>>(references), "Runtime dependencies must match the runtime project's package references")
+
+    let folder = Path.Combine(Path.GetTempPath(), "TickSpec.Build.PackageTests." + Guid.NewGuid().ToString("N"))
+    Directory.CreateDirectory(folder) |> ignore
+    try
+        let metadata = specification.Root.Element(XName.Get "metadata")
+        let packageId = metadata.Element(XName.Get "id").Value
+        let packageVersion = "0.0.0-tests.g" + Guid.NewGuid().ToString("N")
+        metadata.Element(XName.Get "version").Value <- packageVersion
+        let nuspec = Path.Combine(folder, "Package.nuspec")
+        specification.Save(nuspec)
+        let feed = Path.Combine(folder, "feed")
+        let pack specificationPath outputFolder =
+            runDotnet repositoryRoot
+                [
+                    "pack"; Path.Combine(repositoryRoot, "src", "TickSpec.Build", "TickSpec.Build.fsproj")
+                    "--configuration"; "Release"; "--no-restore"; "--output"; outputFolder
+                    "-p:NuspecFile=" + specificationPath
+                    "-p:NuspecBasePath=" + Path.Combine(repositoryRoot, "build")
+                    "--nologo"; "--verbosity"; "minimal"; "--disable-build-servers"
+                ] None
+        let packExitCode, packOutput = pack nuspec feed
+        Assert.That(packExitCode, Is.EqualTo(0), packOutput)
+        Assert.That(packOutput, Does.Not.Contain("NU5100"))
+        Assert.That(packOutput, Does.Not.Contain("NU5128"))
+
+        group.Remove()
+        let invalidNuspec = Path.Combine(folder, "Invalid.nuspec")
+        specification.Save(invalidNuspec)
+        let invalidExitCode, invalidOutput = pack invalidNuspec (Path.Combine(folder, "invalid-feed"))
+        Assert.That(invalidExitCode, Is.Not.EqualTo(0), invalidOutput)
+        Assert.That(invalidOutput, Does.Contain("NU5128"))
+        Assert.That(invalidOutput, Does.Not.Contain("NU5100"))
+
+        let consumer = Path.Combine(folder, "consumer")
+        Directory.CreateDirectory(consumer) |> ignore
+        let packages = SecurityElement.Escape(Path.Combine(folder, "packages"))
+        let projectFile = Path.Combine(consumer, "Consumer.fsproj")
+        File.WriteAllText(projectFile, $"""<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>{framework}</TargetFramework>
+    <TickSpecBuildVerifyBindings>true</TickSpecBuildVerifyBindings>
+    <NuGetAudit>false</NuGetAudit>
+    <RestoreSources>{SecurityElement.Escape(feed)};https://api.nuget.org/v3/index.json</RestoreSources>
+    <RestorePackagesPath>{packages}</RestorePackagesPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Steps.fs" />
+    <PackageReference Include="{packageId}" Version="{packageVersion}" />
+  </ItemGroup>
+</Project>""")
+        File.WriteAllText(Path.Combine(consumer, "Steps.fs"), """
+namespace PackageProbe
+open TickSpec
+
+type Steps =
+    [<Given("a packaged step")>]
+    static member Bound() : unit = failwith "Steps must not execute during verification"
+        """)
+        File.WriteAllText(Path.Combine(consumer, "Probe.feature"), "Feature: Package bindings\nScenario: Bound\nGiven a packaged step\n")
+        // The SDK's implicit FSharp.Core reference must meet the package's minimum.
+        let exitCode, output =
+            runDotnet consumer
+                [
+                    "build"; projectFile; "--nologo"; "--verbosity"; "minimal"; "--disable-build-servers"
+                    "-p:FSharpCoreImplicitPackageVersion=" + dependencies["FSharp.Core"]
+                ]
+                None
+        Assert.That(exitCode, Is.EqualTo(0), output)
+        Assert.That(output, Does.Contain("Verified bindings for 1 scenarios in 1 feature files."))
+        Assert.That(output, Does.Not.Contain("NU1605"))
+
+        use assets = JsonDocument.Parse(File.ReadAllText(Path.Combine(consumer, "obj", "project.assets.json")))
+        let libraries =
+            assets.RootElement.GetProperty("libraries").EnumerateObject()
+            |> Seq.map(fun x ->
+                let parts = x.Name.Split('/')
+                parts[0], parts[1])
+            |> Map.ofSeq
+        for KeyValue(id, minimumVersion) in dependencies do
+            Assert.That(libraries.ContainsKey(id), Is.True, id)
+            Assert.That(Version.Parse(libraries[id]), Is.GreaterThanOrEqualTo(Version.Parse(minimumVersion)), id)
+        let directDependencies =
+            assets.RootElement.GetProperty("project").GetProperty("frameworks").GetProperty(framework).GetProperty("dependencies").EnumerateObject()
+            |> Seq.map(fun x -> x.Name)
+            |> Seq.toArray
+        Assert.That(directDependencies, Does.Not.Contain("NUnit"))
+        Assert.That(directDependencies, Does.Not.Contain("TickSpec"))
+    finally
+        Directory.Delete(folder, true)

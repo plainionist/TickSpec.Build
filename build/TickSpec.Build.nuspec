@@ -12,6 +12,13 @@
     <description>Generates test classes to execute TickSpec (Gherkin/BDD) based specifications</description>
     <readme>docs\README.md</readme>
     <copyright>Copyright 2025</copyright>
+    <dependencies>
+      <group targetFramework="net10.0">
+        <dependency id="FSharp.Core" version="10.1.402" />
+        <dependency id="NUnit" version="5.0.0" />
+        <dependency id="TickSpec" version="2.0.5" />
+      </group>
+    </dependencies>
   </metadata>
   <files>
     <file src="..\README.md" target="docs\" />

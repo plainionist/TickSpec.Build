@@ -5,7 +5,7 @@
     <OutputType>exe</OutputType>
     <RollForward>LatestMajor</RollForward>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <NoWarn>1591</NoWarn>
+    <NoWarn>1591;NU5100</NoWarn>
     <WarningsNotAsErrors>618,672</WarningsNotAsErrors>
   </PropertyGroup>
 

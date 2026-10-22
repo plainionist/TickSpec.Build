@@ -1,7 +1,9 @@
 @echo off
 setlocal
 
-dotnet build -c Release
-\bin\NuGet.exe pack %~d0%~p0\TickSpec.Build.nuspec -outputdirectory package
+dotnet pack "%~dp0..\src\TickSpec.Build\TickSpec.Build.fsproj" -c Release ^
+  "-p:NuspecFile=%~dp0TickSpec.Build.nuspec" ^
+  "-p:NuspecBasePath=%~dp0." ^
+  -o "%~dp0..\package"
 
-endlocal
+endlocal & exit /b %ERRORLEVEL%

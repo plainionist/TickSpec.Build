@@ -11,6 +11,18 @@ It automatically integrates into the build process as "BeforeCompile" target whe
 
 Requires the .NET 10 SDK; consuming test projects must target `net10.0` or later.
 
+To build a local Release package, run [build\pack.cmd](build/pack.cmd).
+Packaging uses the .NET SDK and keeps package analysis enabled; only NU5100 warnings for private tool assemblies are suppressed.
+
+NUnit and TickSpec are restored automatically. If an older F# SDK reports NU1605 for FSharp.Core,
+align its implicit reference with the package's minimum:
+
+```xml
+<ItemGroup>
+  <PackageReference Update="FSharp.Core" Version="10.1.402" />
+</ItemGroup>
+```
+
 ## Build-time binding verification
 
 Optionally fail the build if an embedded feature has a missing or ambiguous step binding.
