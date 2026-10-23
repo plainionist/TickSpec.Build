@@ -40,6 +40,9 @@ environment variable `TickSpecBuildVerifyBindings=true` before building.
 Set the property to `false` to disable verification again.
 
 Verification checks binding resolution, not parameter conversions or dependencies resolved during scenario execution.
+The verifier automatically uses the test assembly's runtime configuration, including shared frameworks such as ASP.NET Core.
+Opted-in builds generate that configuration unless `GenerateRuntimeConfigurationFiles` is explicitly disabled.
+Unresolved type-loading dependencies are reported individually as build errors.
 The command can also be run directly against a compiled test assembly:
 
 ```bash

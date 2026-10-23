@@ -1,6 +1,10 @@
 ﻿module TickSpec.Build.Program
 
 open System
+open System.Diagnostics
+open System.IO
+open System.Reflection
+open System.Text.Json
 open CommandLine
 
 module Unions =
@@ -36,6 +40,22 @@ type DocOptions = {
 
 [<AutoOpen>]
 module private Impl =
+    let hasRuntimeFrameworks runtimeConfig =
+        use document = JsonDocument.Parse(File.ReadAllText(runtimeConfig))
+        let options = document.RootElement.GetProperty("runtimeOptions")
+        fst (options.TryGetProperty("framework")) || fst (options.TryGetProperty("frameworks"))
+
+    let printException (error:Exception) =
+        match error with
+        | :? ReflectionTypeLoadException as ex ->
+            Console.Error.WriteLine("ERROR: Unable to load step-binding types.")
+            ex.LoaderExceptions
+            |> Seq.choose Option.ofObj
+            |> Seq.distinctBy(fun x -> x.Message)
+            |> Seq.iter(fun x -> Console.Error.WriteLine($"ERROR: {x.Message}"))
+        | _ ->
+            Console.Error.WriteLine($"ERROR: {error.Message}")
+
     let runFixtures opts =
         if String.IsNullOrEmpty(opts.File) then
             failwith "Name of the file to generate missing"
@@ -48,8 +68,35 @@ module private Impl =
         if String.IsNullOrWhiteSpace(opts.Assembly) then
             failwith "Assembly to verify missing"
 
-        BindingVerifier.Verify opts.Assembly
-        0
+        let assemblyPath = Path.GetFullPath(opts.Assembly)
+        let runtimeConfig = Path.ChangeExtension(assemblyPath, ".runtimeconfig.json")
+        let runtimeMarker = "TICKSPEC_BUILD_VERIFY_RUNTIME"
+        let hostedAssembly = Environment.GetEnvironmentVariable(runtimeMarker)
+
+        if hostedAssembly <> assemblyPath && File.Exists(runtimeConfig) && hasRuntimeFrameworks runtimeConfig then
+            let host =
+                match Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") with
+                | null | "" -> "dotnet"
+                | path -> path
+            let startInfo = ProcessStartInfo(host)
+            startInfo.UseShellExecute <- false
+            for argument in [
+                "exec"; "--runtimeconfig"; runtimeConfig
+                Assembly.GetExecutingAssembly().Location; "verify-bindings"; assemblyPath
+            ] do
+                startInfo.ArgumentList.Add(argument)
+            // The child must use the consumer's frameworks, but the verifier's own dependency graph.
+            startInfo.Environment[runtimeMarker] <- assemblyPath
+
+            use child = new Process()
+            child.StartInfo <- startInfo
+            if child.Start() |> not then
+                failwith "Could not start binding verification under the test assembly's runtime configuration"
+            child.WaitForExit()
+            child.ExitCode
+        else
+            BindingVerifier.Verify assemblyPath
+            0
 
     let runDoc opts = 
         if String.IsNullOrEmpty(opts.Input) then
@@ -88,5 +135,5 @@ let main args =
         result.MapResult(runFixtures, runDoc, runVerifyBindings, printErrors)
     with
         | ex -> 
-            Console.Error.WriteLine($"ERROR: {ex.Message}")
+            printException ex
             1

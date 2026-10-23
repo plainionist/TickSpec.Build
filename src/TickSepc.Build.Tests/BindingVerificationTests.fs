@@ -42,7 +42,7 @@ let private reference (assembly:Assembly) =
     let path = SecurityElement.Escape(assembly.Location)
     $"""<Reference Include="{name}"><HintPath>{path}</HintPath></Reference>"""
 
-let private buildFeatures (features:(string * string) list) (propertyValue:string option) (environmentValue:string option) =
+let private buildFeaturesWithFramework (framework:string option) (runtimeConfiguration:string option) (features:(string * string) list) (propertyValue:string option) (environmentValue:string option) =
     let folder = Path.Combine(Path.GetTempPath(), "TickSpec.Build.Tests." + Guid.NewGuid().ToString("N"))
     Directory.CreateDirectory(folder) |> ignore
     try
@@ -57,6 +57,21 @@ let private buildFeatures (features:(string * string) list) (propertyValue:strin
             |> Option.map(fun value -> $"<TickSpecBuildVerifyBindings>{value}</TickSpecBuildVerifyBindings>")
             |> Option.defaultValue ""
         let output = Path.Combine("bin", "output with spaces") + string Path.DirectorySeparatorChar
+        let runtimeProperty =
+            runtimeConfiguration
+            |> Option.map(fun value -> $"<GenerateRuntimeConfigurationFiles>{value}</GenerateRuntimeConfigurationFiles>")
+            |> Option.defaultValue ""
+        let frameworkReference =
+            framework
+            |> Option.map(fun value -> $"""<FrameworkReference Include="{value}" />""")
+            |> Option.defaultValue ""
+        let frameworkTypes =
+            framework
+            |> Option.map(fun _ -> """
+type Controller() =
+    inherit Microsoft.AspNetCore.Mvc.ControllerBase()
+            """)
+            |> Option.defaultValue ""
         let project =
             $"""<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
@@ -65,6 +80,7 @@ let private buildFeatures (features:(string * string) list) (propertyValue:strin
     <OutputPath>{output}</OutputPath>
     <NuGetAudit>false</NuGetAudit>
     {property}
+    {runtimeProperty}
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Steps.fs" />
@@ -88,6 +104,7 @@ let private buildFeatures (features:(string * string) list) (propertyValue:strin
   <ItemGroup>
     <Compile Include="Steps.fs" />
     <PackageReference Update="FSharp.Core" Version="10.1.402" />
+    {frameworkReference}
     {references}
   </ItemGroup>
 </Project>""")
@@ -98,7 +115,7 @@ open TickSpec
 type SharedSteps =
     [<Given("a shared step")>]
     static member Shared() : unit = failwith "Shared steps must not execute during verification"
-        """)
+        """ + frameworkTypes)
         File.WriteAllText(Path.Combine(folder, "Steps.fs"), """
 namespace BindingProbe
 open TickSpec
@@ -136,6 +153,9 @@ type Steps =
             environmentValue
     finally
         Directory.Delete(folder, true)
+
+let private buildFeatures features propertyValue environmentValue =
+    buildFeaturesWithFramework None None features propertyValue environmentValue
 
 let private build (step:string) propertyValue environmentValue =
     let feature = $"Feature: Binding checks\nScenario: Verify a step\nGiven {step}\n"
@@ -175,6 +195,45 @@ let ``Project property can disable verification enabled by environment``() =
     let exitCode, output = build "an unknown step" (Some "false") (Some "true")
     Assert.That(exitCode, Is.EqualTo(0), output)
     Assert.That(output, Does.Not.Contain("Verifying step bindings"))
+
+[<Test>]
+let ``Verification without runtime configuration still supports ordinary libraries``() =
+    let feature = "Feature: Ordinary bindings\nScenario: Bound\nGiven a bound step\n"
+    let exitCode, output =
+        buildFeaturesWithFramework None (Some "false")
+            [ "Probe.feature", feature ] (Some "true") None
+    Assert.That(exitCode, Is.EqualTo(0), output)
+    Assert.That(output, Does.Contain("Verified bindings for 1 scenarios in 1 feature files."))
+
+[<Test>]
+let ``Verification uses shared ASPNET Core runtime dependencies``() =
+    let feature = "Feature: Framework bindings\nScenario: Bound\nGiven a shared step\n"
+    let exitCode, output =
+        buildFeaturesWithFramework (Some "Microsoft.AspNetCore.App") None
+            [ "Probe.feature", feature ] (Some "true") None
+    Assert.That(exitCode, Is.EqualTo(0), output)
+    Assert.That(output, Does.Contain("Verified bindings for 1 scenarios in 1 feature files."))
+
+[<Test>]
+let ``Framework-aware verification still rejects missing bindings``() =
+    let feature = "Feature: Framework bindings\nScenario: Missing\nGiven an unknown step\n"
+    let exitCode, output =
+        buildFeaturesWithFramework (Some "Microsoft.AspNetCore.App") None
+            [ "Probe.feature", feature ] (Some "true") None
+    Assert.That(exitCode, Is.Not.EqualTo(0), output)
+    Assert.That(output, Does.Contain("Missing step definition"))
+    Assert.That(output, Does.Not.Contain("Unable to load step-binding types"))
+    Assert.That(output, Does.Not.Contain("Verified bindings for"))
+
+[<Test>]
+let ``Unresolved framework types report build-visible loader errors``() =
+    let feature = "Feature: Framework bindings\nScenario: Bound\nGiven a shared step\n"
+    let exitCode, output =
+        buildFeaturesWithFramework (Some "Microsoft.AspNetCore.App") (Some "false")
+            [ "Probe.feature", feature ] (Some "true") None
+    Assert.That(exitCode, Is.Not.EqualTo(0), output)
+    Assert.That(output, Does.Match(@"(?m)^(?:EXEC : error :|ERROR:).*Microsoft\.AspNetCore\.Mvc\.Core"))
+    Assert.That(output, Does.Not.Contain("Verified bindings for"))
 
 [<Test>]
 let ``Background bindings are verified``() =
@@ -296,6 +355,7 @@ let ``NuGet package restores runtime binding dependencies transitively``() =
   <ItemGroup>
     <Compile Include="Steps.fs" />
     <PackageReference Include="{packageId}" Version="{packageVersion}" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 </Project>""")
         File.WriteAllText(Path.Combine(consumer, "Steps.fs"), """
@@ -305,6 +365,9 @@ open TickSpec
 type Steps =
     [<Given("a packaged step")>]
     static member Bound() : unit = failwith "Steps must not execute during verification"
+
+type Controller() =
+    inherit Microsoft.AspNetCore.Mvc.ControllerBase()
         """)
         File.WriteAllText(Path.Combine(consumer, "Probe.feature"), "Feature: Package bindings\nScenario: Bound\nGiven a packaged step\n")
         // The SDK's implicit FSharp.Core reference must meet the package's minimum.

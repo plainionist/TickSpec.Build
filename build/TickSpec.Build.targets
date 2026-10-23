@@ -11,6 +11,7 @@
     <FeatureFileHtmlInput Condition="'$(FeatureFileHtmlInput)' == ''">$(MSBuildProjectDirectory)</FeatureFileHtmlInput>
     <TickSpecBuildTocFormatArg Condition="'$(TickSpecBuildTocFormat)' != ''">--toc $(TickSpecBuildTocFormat)</TickSpecBuildTocFormatArg>
     <TickSpecBuildVerifyBindings Condition="'$(TickSpecBuildVerifyBindings)' == ''">false</TickSpecBuildVerifyBindings>
+    <GenerateRuntimeConfigurationFiles Condition="'$(TickSpecBuildVerifyBindings)' == 'true' and '$(GenerateRuntimeConfigurationFiles)' == ''">true</GenerateRuntimeConfigurationFiles>
   </PropertyGroup>
 
   <ItemGroup>
